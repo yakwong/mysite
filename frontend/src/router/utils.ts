@@ -117,8 +117,13 @@ function handleAsyncRoutes(routeList) {
   if (routeList.length === 0) {
     usePermissionStoreHook().handleWholeMenus(routeList);
   } else {
+    let rootRouteConfig: RouteRecordRaw | null = null;
     formatFlatteningRoutes(addAsyncRoutes(routeList)).map(
       (v: RouteRecordRaw) => {
+        if (v.path === "/") {
+          rootRouteConfig = v;
+          return;
+        }
         // 防止重复添加路由
         if (
           router.options.routes[0].children.findIndex(
@@ -141,6 +146,31 @@ function handleAsyncRoutes(routeList) {
         }
       }
     );
+    if (rootRouteConfig) {
+      const rootOptions = router.options.routes[0];
+      if (rootRouteConfig.redirect) {
+        rootOptions.redirect = rootRouteConfig.redirect;
+        const currentRoot = router
+          .getRoutes()
+          .find(route => route.path === "/");
+        if (currentRoot) {
+          (currentRoot as any).redirect = rootRouteConfig.redirect;
+        }
+      }
+      if (rootRouteConfig.meta) {
+        rootOptions.meta = {
+          ...(rootOptions.meta ?? {}),
+          ...rootRouteConfig.meta,
+          backstage: true
+        };
+        const currentRoot = router
+          .getRoutes()
+          .find(route => route.path === "/");
+        if (currentRoot) {
+          (currentRoot as any).meta = rootOptions.meta;
+        }
+      }
+    }
     usePermissionStoreHook().handleWholeMenus(routeList);
   }
   if (!useMultiTagsStoreHook().getMultiTagsCache) {

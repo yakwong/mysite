@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "username", "nickname", "avatar", "password", "status", "last_login", "dept", "dept_name", "role", "role_name")
+        fields = ("id", "email", "username", "nickname", "avatar", "phone", "password", "status", "last_login", "dept", "dept_name", "role", "role_name")
         extra_kwargs = {"password": {"write_only": True}}  # 设置密码为只写字段
 
     def get_dept_name(self, obj):
@@ -57,5 +57,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    """
+    登录序列化器，支持邮箱、用户名、手机号三种方式登录
+    """
+    account = serializers.CharField(required=True, help_text="邮箱/用户名/手机号")
     password = serializers.CharField(write_only=True, required=True)
+
+    def validate_account(self, value):
+        """验证账号格式"""
+        import re
+
+        # 中国手机号正则: 1开头，第二位是3-9，共11位
+        phone_pattern = r'^1[3-9]\d{9}$'
+        # 邮箱正则
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+        # 判断是否为手机号
+        if re.match(phone_pattern, value):
+            return value
+        # 判断是否为邮箱
+        elif re.match(email_pattern, value):
+            return value
+        # 判断是否为用户名 (允许字母、数字、下划线、中文)
+        elif len(value) > 0:
+            return value
+        else:
+            raise serializers.ValidationError("请输入有效的邮箱、用户名或手机号")
+
+        return value

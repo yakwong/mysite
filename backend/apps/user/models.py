@@ -38,6 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=100, unique=False, default=None, null=True)
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=11, unique=True, null=True, blank=True, verbose_name="手机号")
     status = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

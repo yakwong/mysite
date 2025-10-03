@@ -166,6 +166,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # auth鉴权设置
 AUTH_USER_MODEL = "user.User"  # 指定自定义用户数据表(应用名.模型名)
 
+# 认证后端配置 - 支持邮箱、用户名、手机号三种方式登录
+AUTHENTICATION_BACKENDS = [
+    'apps.user.backends.MultiFieldAuthBackend',  # 自定义多字段认证后端
+    'django.contrib.auth.backends.ModelBackend',  # 保留默认后端作为备选
+]
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated", "utils.permissions.ActiveAndPermission"],  # 默认权限

@@ -46,9 +46,10 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data["email"]
+            account = serializer.validated_data["account"]
             password = serializer.validated_data["password"]
-            user = authenticate(email=email, password=password)
+            # 使用自定义认证后端，支持邮箱、用户名、手机号登录
+            user = authenticate(request=request, account=account, password=password)
             if user is not None:
                 if user.status == 0:
                     return CustomResponse(success=False, msg="用户已被禁用", status=status.HTTP_401_UNAUTHORIZED)
@@ -67,6 +68,6 @@ class LoginView(APIView):
                 return CustomResponse(data=data, msg="登陆成功")
 
             # 发送登录失败信号
-            user_login_failed.send(sender=user.__class__, request=request, email=email)
+            user_login_failed.send(sender=user.__class__, request=request, email=account)
             return CustomResponse(success=False, msg="登录信息错误", status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

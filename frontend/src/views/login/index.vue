@@ -37,7 +37,7 @@ dataThemeChange(overallStyle.value);
 const { title } = useNav();
 
 const ruleForm = reactive({
-  email: "",
+  account: "",  // 改为 account,支持邮箱/用户名/手机号
   password: ""
 });
 
@@ -47,7 +47,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     if (valid) {
       loading.value = true;
       useUserStoreHook()
-        .loginByEmail({ email: ruleForm.email, password: ruleForm.password })
+        .loginByEmail({ account: ruleForm.account, password: ruleForm.password })
         .then(res => {
           if (res.success) {
             // 获取后端路由
@@ -109,13 +109,13 @@ useEventListener(document, "keydown", ({ code }) => {
                 :rules="[
                   {
                     required: true,
-                    message: '请输入邮箱',
+                    message: '请输入账号',
                     trigger: 'blur'
                   }
                 ]"
-                prop="email"
+                prop="account"
               >
-                <el-input v-model="ruleForm.email" clearable placeholder="邮箱账号" :prefix-icon="useRenderIcon(User)" />
+                <el-input v-model="ruleForm.account" clearable placeholder="邮箱/用户名/手机号" :prefix-icon="useRenderIcon(User)" />
               </el-form-item>
             </Motion>
 
