@@ -7,7 +7,7 @@ import traceback
 
 from django.db.models import ProtectedError
 from django.db.utils import DatabaseError
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed, NotAuthenticated, ValidationError, NotFound
 from rest_framework.views import set_rollback, exception_handler
 from django.http.response import Http404
@@ -93,11 +93,11 @@ def CustomExceptionHandler(ex, context):
     # for key in errorMsg:
     #     msg = errorMsg[key][0]
     # print(traceback.format_exc())
-    # if response:
-    #     return CustomResponse(success=False, data=response.data, msg=msg, status=response.status_code)
-    # else:
-    #     return CustomResponse(success=False, data={}, msg=msg, status=500)
-    return CustomResponse(success=False, data=response.data, msg=msg, status=response.status_code)
+    payload = getattr(response, "data", {}) if response else {}
+    status_code = response.status_code if response else status.HTTP_500_INTERNAL_SERVER_ERROR
+    if not msg:
+        msg = payload.get("detail", "服务器异常") if isinstance(payload, dict) else "服务器异常"
+    return CustomResponse(success=False, data=payload, msg=msg, status=status_code)
 
 
 class APIException(Exception):

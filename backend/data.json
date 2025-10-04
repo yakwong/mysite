@@ -546,7 +546,18 @@
       "user_permissions": [],
       "role": [
         "b3223970-2c59-444a-8e21-153a94afe909"
-      ]
+      ],
+      "phone": null,
+      "phone_verified": false,
+      "backup_email": null,
+      "description": null,
+      "password_strength": "unknown",
+      "password_updated_at": null,
+      "security_question": null,
+      "security_answer_hash": null,
+      "security_question_updated_at": null,
+      "two_factor_enabled": false,
+      "login_notifier_enabled": true
     }
   },
   {
@@ -568,7 +579,18 @@
       "user_permissions": [],
       "role": [
         "9a4b7173-beb2-4544-a1e6-2fe4c1aa365e"
-      ]
+      ],
+      "phone": null,
+      "phone_verified": false,
+      "backup_email": null,
+      "description": null,
+      "password_strength": "unknown",
+      "password_updated_at": null,
+      "security_question": null,
+      "security_answer_hash": null,
+      "security_question_updated_at": null,
+      "two_factor_enabled": false,
+      "login_notifier_enabled": true
     }
   },
   {

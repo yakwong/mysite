@@ -1,61 +1,65 @@
-#!/bin/bash
-# 启动后端服务脚本
+#!/usr/bin/env bash
+# 启动后端开发服务
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/backend"
-PID_FILE="/tmp/backend.pid"
-LOG_FILE="/tmp/backend.log"
+RUN_DIR="$BACKEND_DIR/.run"
+LOG_DIR="/tmp/mysite"
+PID_FILE="$RUN_DIR/backend.pid"
+LOG_FILE="$LOG_DIR/backend-dev.log"
+HOST="0.0.0.0"
+PORT="8000"
 
-# 检查后端服务是否已经运行
-if [ -f "$PID_FILE" ]; then
-    PID=$(cat "$PID_FILE")
-    if ps -p "$PID" > /dev/null 2>&1; then
-        echo "后端服务已经在运行 (PID: $PID)"
-        exit 0
-    else
-        echo "清理旧的 PID 文件"
-        rm -f "$PID_FILE"
-    fi
-fi
+mkdir -p "$RUN_DIR" "$LOG_DIR"
 
-# 检查后端目录是否存在
 if [ ! -d "$BACKEND_DIR" ]; then
-    echo "错误: 后端目录不存在: $BACKEND_DIR"
-    exit 1
+  echo "[后端] 未找到目录: $BACKEND_DIR" >&2
+  exit 1
 fi
 
-# 进入后端目录
+if [ -f "$PID_FILE" ]; then
+  EXISTING_PID="$(cat "$PID_FILE")"
+  if kill -0 "$EXISTING_PID" 2>/dev/null; then
+    echo "[后端] 开发服务已在运行 (PID: $EXISTING_PID)"
+    exit 0
+  else
+    rm -f "$PID_FILE"
+  fi
+fi
+
+PYTHON_BIN="$BACKEND_DIR/venv/bin/python"
+if [ ! -x "$PYTHON_BIN" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+  elif command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+  else
+    echo "[后端] 未找到可执行的 Python, 请先安装或创建虚拟环境" >&2
+    exit 1
+  fi
+fi
+
+if lsof -i TCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "[后端] 端口 $PORT 已被占用, 启动被取消" >&2
+  exit 1
+fi
+
 cd "$BACKEND_DIR"
 
-# 检查虚拟环境
-if [ -d "venv" ]; then
-    source venv/bin/activate
-elif [ -d "../venv" ]; then
-    source ../venv/bin/activate
-fi
+echo "[后端] 启动 Django 开发服务 (日志: $LOG_FILE)"
 
-# 检查 .env 文件
-if [ ! -f ".env" ]; then
-    echo "警告: .env 文件不存在,请先创建 .env 文件"
-    echo "可以参考 .env.example 文件"
-fi
-
-# 启动后端服务
-echo "正在启动后端服务..."
-echo "日志文件: $LOG_FILE"
-
-# 使用 nohup 在后台启动,并将 PID 保存
-nohup python manage.py runserver 0.0.0.0:8000 > "$LOG_FILE" 2>&1 &
-echo $! > "$PID_FILE"
+setsid "$PYTHON_BIN" manage.py runserver "$HOST:$PORT" >>"$LOG_FILE" 2>&1 &
+PID=$!
+echo "$PID" > "$PID_FILE"
 
 sleep 2
 
-# 验证服务是否成功启动
-if ps -p $(cat "$PID_FILE") > /dev/null 2>&1; then
-    echo "后端服务启动成功 (PID: $(cat "$PID_FILE"))"
-    echo "可以通过以下命令查看日志: tail -f $LOG_FILE"
+if kill -0 "$PID" 2>/dev/null; then
+  echo "[后端] 启动成功 (PID: $PID)"
+  echo "[后端] 查看日志: tail -f $LOG_FILE"
 else
-    echo "后端服务启动失败,请查看日志: $LOG_FILE"
-    rm -f "$PID_FILE"
-    exit 1
+  echo "[后端] 启动失败, 请检查日志: $LOG_FILE" >&2
+  rm -f "$PID_FILE"
+  exit 1
 fi
