@@ -493,9 +493,7 @@ onBeforeUnmount(() => {
       <div ref="tabDom" class="tab select-none" :style="getTabStyle">
         <div v-for="(item, index) in multiTags" :ref="'dynamic' + index" :key="index" :class="['scroll-item is-closable', linkIsActive(item), showModel === 'chrome' && 'chrome-item', isFixedTag(item) && 'fixed-tag']" @contextmenu.prevent="openMenu(item, $event)" @mouseenter.prevent="onMouseenter(index)" @mouseleave.prevent="onMouseleave(index)" @click="tagOnClick(item)">
           <template v-if="showModel !== 'chrome'">
-            <span
-              class="tag-title dark:text-text_color_primary! dark:hover:text-primary!"
-            >
+            <span class="tag-title dark:text-text_color_primary! dark:hover:text-primary!">
               {{ item.meta.title }}
             </span>
             <span v-if="isFixedTag(item) ? false : iconIsActive(item, index) || (index === activeIndex && index !== 0)" class="el-icon-close" @click.stop="deleteMenu(item)">

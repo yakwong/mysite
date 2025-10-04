@@ -17,6 +17,8 @@ Including another URLconf
 
 from django.urls import path, include
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from utils.authenticator import CustomTokenRefreshView
 
 urlpatterns = [
@@ -27,3 +29,6 @@ urlpatterns = [
     path("api/test/", include("apps.functiontest.urls")),  # 包含functiontest应用的URL
     path("api/token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

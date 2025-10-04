@@ -37,7 +37,7 @@ dataThemeChange(overallStyle.value);
 const { title } = useNav();
 
 const ruleForm = reactive({
-  account: "",  // 改为 account,支持邮箱/用户名/手机号
+  account: "", // 改为 account,支持邮箱/用户名/手机号
   password: ""
 });
 
@@ -66,19 +66,10 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   });
 };
 
-const immediateDebounce: any = debounce(
-  formRef => onLogin(formRef),
-  1000,
-  true
-);
+const immediateDebounce: any = debounce(formRef => onLogin(formRef), 1000, true);
 
 useEventListener(document, "keydown", ({ code }) => {
-  if (
-    ["Enter", "NumpadEnter"].includes(code) &&
-    !disabled.value &&
-    !loading.value
-  )
-    immediateDebounce(ruleFormRef.value);
+  if (["Enter", "NumpadEnter"].includes(code) && !disabled.value && !loading.value) immediateDebounce(ruleFormRef.value);
 });
 </script>
 

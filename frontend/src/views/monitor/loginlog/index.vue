@@ -156,6 +156,7 @@ onBeforeUnmount(() => {
 
 .searchform {
   background-color: var(--el-bg-color);
+
   /* padding: 10px; */
   .el-form-item {
     margin: 10px;
@@ -163,21 +164,23 @@ onBeforeUnmount(() => {
 }
 
 .table {
-  flex: 1;
-  margin-top: 10px;
-  background-color: var(--el-bg-color);
-  height: 100%;
   /* 解决element表格在flex布局下无法自适应窗口宽度缩小的问题 */
   position: relative;
+  flex: 1;
+  height: 100%;
+  margin-top: 10px;
+  background-color: var(--el-bg-color);
+
   .el-table {
     position: absolute;
   }
+
   .el-pagination {
-    width: 100%;
     position: absolute;
+    bottom: 0;
     display: flex;
     justify-content: center;
-    bottom: 0;
+    width: 100%;
     height: 50px;
   }
 }

@@ -44,20 +44,7 @@ const message = (message: string | VNode | (() => VNode), params?: MessageParams
       customClass: "pure-message"
     });
   } else {
-    const {
-      icon,
-      type = "info",
-      plain = false,
-      dangerouslyUseHTMLString = false,
-      customClass = "antd",
-      duration = 2000,
-      showClose = false,
-      offset = 16,
-      appendTo = document.body,
-      grouping = false,
-      repeatNum = 1,
-      onClose
-    } = params;
+    const { icon, type = "info", plain = false, dangerouslyUseHTMLString = false, customClass = "antd", duration = 2000, showClose = false, offset = 16, appendTo = document.body, grouping = false, repeatNum = 1, onClose } = params;
 
     return ElMessage({
       message,

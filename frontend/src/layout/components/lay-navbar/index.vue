@@ -9,18 +9,14 @@ import LaySidebarTopCollapse from "../lay-sidebar/components/SidebarTopCollapse.
 
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
+import AccountSettingsIcon from "~icons/ri/user-settings-line";
 
-const { layout, device, logout, onPanel, pureApp, username, userAvatar, avatarsStyle, toggleSideBar } = useNav();
+const { layout, device, logout, onPanel, pureApp, username, userAvatar, avatarsStyle, toggleSideBar, toAccountSettings } = useNav();
 </script>
 
 <template>
   <div class="navbar bg-[#fff] shadow-xs shadow-[rgba(0,21,41,0.08)]">
-    <LaySidebarTopCollapse
-      v-if="device === 'mobile'"
-      class="hamburger-container"
-      :is-active="pureApp.sidebar.opened"
-      @toggleClick="toggleSideBar"
-    />
+    <LaySidebarTopCollapse v-if="device === 'mobile'" class="hamburger-container" :is-active="pureApp.sidebar.opened" @toggleClick="toggleSideBar" />
 
     <LaySidebarBreadCrumb v-if="layout !== 'mix' && device !== 'mobile'" class="breadcrumb-container" />
 
@@ -41,7 +37,11 @@ const { layout, device, logout, onPanel, pureApp, username, userAvatar, avatarsS
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
-            <el-dropdown-item @click="logout">
+            <el-dropdown-item @click="toAccountSettings">
+              <IconifyIconOffline :icon="AccountSettingsIcon" style="margin: 5px" />
+              账户设置
+            </el-dropdown-item>
+            <el-dropdown-item divided @click="logout">
               <IconifyIconOffline :icon="LogoutCircleRLine" style="margin: 5px" />
               退出系统
             </el-dropdown-item>

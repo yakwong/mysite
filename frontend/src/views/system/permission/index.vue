@@ -31,7 +31,7 @@
         </el-table-column>
         <el-table-column prop="name" label="名称" align="center" min-width="150px">
           <template #default="{ row }">
-            <div style="display: flex; justify-content: center; align-items: center">
+            <div style="display: flex; align-items: center; justify-content: center">
               <component :is="useRenderIcon(row.meta.icon)" style="min-width: 15px; min-height: 15px" />
               <span>{{ row.name }}</span>
             </div>
@@ -271,6 +271,7 @@ onBeforeUnmount(() => {
 
 .searchform {
   background-color: var(--el-bg-color);
+
   /* padding: 10px; */
   .el-form-item {
     margin: 10px;
@@ -278,12 +279,13 @@ onBeforeUnmount(() => {
 }
 
 .table {
-  flex: 1;
-  margin-top: 10px;
-  background-color: var(--el-bg-color);
-  height: 100%;
   /* 解决element表格在flex布局下无法自适应窗口宽度缩小的问题 */
   position: relative;
+  flex: 1;
+  height: 100%;
+  margin-top: 10px;
+  background-color: var(--el-bg-color);
+
   .el-table {
     position: absolute;
   }

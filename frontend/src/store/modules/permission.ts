@@ -16,12 +16,8 @@ export const usePermissionStore = defineStore("pure-permission", {
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: any[]) {
-      this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(this.constantMenus.concat(routes)))
-      );
-      this.flatteningRoutes = formatFlatteningRoutes(
-        this.constantMenus.concat(routes) as any
-      );
+      this.wholeMenus = filterNoPermissionTree(filterTree(ascending(this.constantMenus.concat(routes))));
+      this.flatteningRoutes = formatFlatteningRoutes(this.constantMenus.concat(routes) as any);
     },
     cacheOperate({ mode, name }: cacheType) {
       const delIndex = this.cachePageList.findIndex(v => v === name);

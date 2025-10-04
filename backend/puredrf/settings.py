@@ -210,16 +210,27 @@ CORS_ALLOW_HEADERS = "*"
 # ****************** Redis缓存设置 ***************** #
 # ================================================= #
 USE_REDIS = env.bool("USE_REDIS", default=False)
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env.str("REDIS_HOST"),  # 指定 Redis 服务器地址和数据库编号
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # 'PASSWORD': env.str('REDIS_PASSWORD', default=''),
-        },
+if USE_REDIS:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": env.str("REDIS_HOST"),  # 指定 Redis 服务器地址和数据库编号
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                # 'PASSWORD': env.str('REDIS_PASSWORD', default=''),
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "account-security",
+        }
+    }
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 CACHES_TTL = 60 * 60 * 1  # 缓存时间
 

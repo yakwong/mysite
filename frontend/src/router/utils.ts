@@ -118,41 +118,31 @@ function handleAsyncRoutes(routeList) {
     usePermissionStoreHook().handleWholeMenus(routeList);
   } else {
     let rootRouteConfig: RouteRecordRaw | null = null;
-    formatFlatteningRoutes(addAsyncRoutes(routeList)).map(
-      (v: RouteRecordRaw) => {
-        if (v.path === "/") {
-          rootRouteConfig = v;
-          return;
-        }
-        // 防止重复添加路由
-        if (
-          router.options.routes[0].children.findIndex(
-            value => value.path === v.path
-          ) !== -1
-        ) {
-          return;
-        } else {
-          // 切记将路由push到routes后还需要使用addRoute，这样路由才能正常跳转
-          router.options.routes[0].children.push(v);
-          // 最终路由进行升序
-          ascending(router.options.routes[0].children);
-          if (!router.hasRoute(v?.name)) router.addRoute(v);
-          const flattenRouters: any = router
-            .getRoutes()
-            .find(n => n.path === "/");
-          // 保持router.options.routes[0].children与path为"/"的children一致，防止数据不一致导致异常
-          flattenRouters.children = router.options.routes[0].children;
-          router.addRoute(flattenRouters);
-        }
+    formatFlatteningRoutes(addAsyncRoutes(routeList)).map((v: RouteRecordRaw) => {
+      if (v.path === "/") {
+        rootRouteConfig = v;
+        return;
       }
-    );
+      // 防止重复添加路由
+      if (router.options.routes[0].children.findIndex(value => value.path === v.path) !== -1) {
+        return;
+      } else {
+        // 切记将路由push到routes后还需要使用addRoute，这样路由才能正常跳转
+        router.options.routes[0].children.push(v);
+        // 最终路由进行升序
+        ascending(router.options.routes[0].children);
+        if (!router.hasRoute(v?.name)) router.addRoute(v);
+        const flattenRouters: any = router.getRoutes().find(n => n.path === "/");
+        // 保持router.options.routes[0].children与path为"/"的children一致，防止数据不一致导致异常
+        flattenRouters.children = router.options.routes[0].children;
+        router.addRoute(flattenRouters);
+      }
+    });
     if (rootRouteConfig) {
       const rootOptions = router.options.routes[0];
       if (rootRouteConfig.redirect) {
         rootOptions.redirect = rootRouteConfig.redirect;
-        const currentRoot = router
-          .getRoutes()
-          .find(route => route.path === "/");
+        const currentRoot = router.getRoutes().find(route => route.path === "/");
         if (currentRoot) {
           (currentRoot as any).redirect = rootRouteConfig.redirect;
         }
@@ -163,9 +153,7 @@ function handleAsyncRoutes(routeList) {
           ...rootRouteConfig.meta,
           backstage: true
         };
-        const currentRoot = router
-          .getRoutes()
-          .find(route => route.path === "/");
+        const currentRoot = router.getRoutes().find(route => route.path === "/");
         if (currentRoot) {
           (currentRoot as any).meta = rootOptions.meta;
         }

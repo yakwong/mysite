@@ -1,5 +1,7 @@
 # 路由配置说明
 
+> 2025-10-04 校准：新增 `/api/user/profile/login-notifier/` 登录提醒开关接口，详见 `apps/user/views.py` 与 `docs/CODE_OVERVIEW.md`。
+
 ## 概述
 
 本项目采用 **后端完全控制** 的路由配置策略,即后端数据库中的路由配置会覆盖前端默认配置,实现 RBAC 权限系统的动态首页控制。

@@ -165,8 +165,8 @@ watch(
 }
 
 .split .line {
-  height: 1px;
   width: 100%;
-  background-color: #cccccc;
+  height: 1px;
+  background-color: #ccc;
 }
 </style>

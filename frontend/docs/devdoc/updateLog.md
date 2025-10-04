@@ -1,5 +1,10 @@
 # 项目更新日志
 
+## 2025.10.04 [文档&安全]补充代码地图与登录提醒功能说明
+
+- 新增仓库 `docs/CODE_OVERVIEW.md`、`docs/CODE_FILES.md`，记录前后端逐文件信息，便于排查与协同开发。
+- 账户设置页加入“登录提醒”开关，与后端 `/api/user/profile/login-notifier/` 接口联动。
+
 ## 2025.05.23 [前端bug修复]修复部分 子菜单 组件匹配错误的bug
 
 - 前端：临时在[pure-drf-admin](https://github.com/immrk/pure-drf-admin)前端前端项目内，修复组件匹配错误的bug（偶发性bug，初步分析原因为父路由组件与子路由组件冲突导致），但pure-admin框架暂未修复该bug，待框架更新后会同步对齐该部分代码

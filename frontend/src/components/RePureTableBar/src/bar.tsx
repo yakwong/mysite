@@ -63,14 +63,7 @@ export default defineComponent({
     });
 
     const iconClass = computed(() => {
-      return [
-        "text-black",
-        "dark:text-white",
-        "duration-100",
-        "hover:text-primary!",
-        "cursor-pointer",
-        "outline-hidden"
-      ];
+      return ["text-black", "dark:text-white", "duration-100", "hover:text-primary!", "cursor-pointer", "outline-hidden"];
     });
 
     const topClass = computed(() => {
@@ -195,18 +188,7 @@ export default defineComponent({
 
     return () => (
       <>
-        <div
-          {...attrs}
-          class={[
-            "w-full",
-            "px-2",
-            "pb-2",
-            "bg-bg_color",
-            isFullscreen.value
-              ? ["h-full!", "z-2002", "fixed", "inset-0"]
-              : "mt-2"
-          ]}
-        >
+        <div {...attrs} class={["w-full", "px-2", "pb-2", "bg-bg_color", isFullscreen.value ? ["h-full!", "z-2002", "fixed", "inset-0"] : "mt-2"]}>
           <div class="flex justify-between w-full h-[60px] p-4">
             {slots?.title ? slots.title() : <p class="font-bold truncate">{props.title}</p>}
             <div class="flex items-center justify-around">
@@ -233,13 +215,7 @@ export default defineComponent({
 
               <el-popover v-slots={reference} placement="bottom-start" popper-style={{ padding: 0 }} width="200" trigger="click">
                 <div class={[topClass.value]}>
-                  <el-checkbox
-                    class="-mr-1!"
-                    label="列展示"
-                    v-model={checkAll.value}
-                    indeterminate={isIndeterminate.value}
-                    onChange={value => handleCheckAllChange(value)}
-                  />
+                  <el-checkbox class="-mr-1!" label="列展示" v-model={checkAll.value} indeterminate={isIndeterminate.value} onChange={value => handleCheckAllChange(value)} />
                   <el-button type="primary" link onClick={() => onReset()}>
                     重置
                   </el-button>
@@ -252,29 +228,9 @@ export default defineComponent({
                         {checkColumnList.map((item, index) => {
                           return (
                             <div class="flex items-center">
-                              <DragIcon
-                                class={[
-                                  "drag-btn w-[16px] mr-2",
-                                  isFixedColumn(item)
-                                    ? "cursor-no-drop!"
-                                    : "cursor-grab!"
-                                ]}
-                                onMouseenter={(event: {
-                                  preventDefault: () => void;
-                                }) => rowDrop(event)}
-                              />
-                              <el-checkbox
-                                key={index}
-                                label={item}
-                                value={item}
-                                onChange={value =>
-                                  handleCheckColumnListChange(value, item)
-                                }
-                              >
-                                <span
-                                  title={item}
-                                  class="inline-block w-[120px] truncate hover:text-text_color_primary"
-                                >
+                              <DragIcon class={["drag-btn w-[16px] mr-2", isFixedColumn(item) ? "cursor-no-drop!" : "cursor-grab!"]} onMouseenter={(event: { preventDefault: () => void }) => rowDrop(event)} />
+                              <el-checkbox key={index} label={item} value={item} onChange={value => handleCheckColumnListChange(value, item)}>
+                                <span title={item} class="inline-block w-[120px] truncate hover:text-text_color_primary">
                                   {item}
                                 </span>
                               </el-checkbox>
@@ -288,12 +244,7 @@ export default defineComponent({
               </el-popover>
               <el-divider direction="vertical" />
 
-              <iconifyIconOffline
-                class={["w-[16px]", iconClass.value]}
-                icon={isFullscreen.value ? ExitFullscreen : Fullscreen}
-                v-tippy={isFullscreen.value ? "退出全屏" : "全屏"}
-                onClick={() => onFullscreen()}
-              />
+              <iconifyIconOffline class={["w-[16px]", iconClass.value]} icon={isFullscreen.value ? ExitFullscreen : Fullscreen} v-tippy={isFullscreen.value ? "退出全屏" : "全屏"} onClick={() => onFullscreen()} />
             </div>
           </div>
           {slots.default({

@@ -8,6 +8,7 @@ Pure DRF 是一个使用 Vue 3 + Django REST Framework 构建的全栈 RBAC 权�
 
 - 🔐 完整的 RBAC 权限管理（部门、角色、权限、用户）
 - 🎯 多层级权限控制（路由级、组件级、按钮级）
+- 🛡️ 账户安全中心（两步验证、登录提醒、密保问题、备用邮箱等）
 - 📝 完善的操作日志和登录日志
 - 🚀 前后端分离架构
 - 💻 基于 Vue 3 + Vite + Element Plus
@@ -151,10 +152,18 @@ mysite/
 │   │   └── decorators.py    # 权限装饰器
 │   └── puredrf/         # Django 项目配置
 │
+├── docs/                # 本次分析生成的代码概览与清单
 ├── CLAUDE.md            # Claude Code 开发指南
 ├── AGENTS.md            # 代码规范和提交指南
 └── README.md            # 项目说明文档
 ```
+
+## 📚 代码分析与文档
+
+- `docs/CODE_OVERVIEW.md`：后端/前端模块职责总览，新增登录提醒开关等最新改动说明。
+- `docs/CODE_FILES.md`：逐文件统计表（行数、首行内容、路径），便于定位源码。
+- `backend/DATABASE_DESIGN.md`：数据库结构与字段描述（已更新至当前模型）。
+- `backend/ROUTE_CONFIG.md`：REST API 列表，可配合 `check_route_config.py` 校验。
 
 ## 🔐 权限系统
 

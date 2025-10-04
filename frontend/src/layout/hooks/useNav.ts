@@ -20,7 +20,8 @@ const errorInfo = "The current routing configuration is incorrect, please check 
 export function useNav() {
   const route = useRoute();
   const pureApp = useAppStoreHook();
-  const routers = useRouter().options.routes;
+  const routerInstance = useRouter();
+  const routers = routerInstance.options.routes;
   const { isFullscreen, toggle } = useFullscreen();
   const { wholeMenus } = storeToRefs(usePermissionStoreHook());
   /** 平台`layout`中所有`el-tooltip`的`effect`配置，默认`light` */
@@ -83,6 +84,10 @@ export function useNav() {
     router.push(getTopMenu()?.path);
   }
 
+  function toAccountSettings() {
+    routerInstance.push({ name: "AccountSettings" });
+  }
+
   function onPanel() {
     emitter.emit("openPanel");
   }
@@ -134,6 +139,7 @@ export function useNav() {
     ExitFullscreen,
     toggle,
     backTopMenu,
+    toAccountSettings,
     onPanel,
     getDivStyle,
     changeTitle,

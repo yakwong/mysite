@@ -11,3 +11,5 @@ Pure drf 是一个使用Vue作为前端、Django(DRF)作为后端的RBAC开源�
 - [后端代码：pure-drf-admin-backend](https://github.com/immrk/pure-drf-admin-backend)
 
   后端代码采用标准化drf文件结构开发,提供 中间件自动鉴权 与 装饰器指定权限鉴权 两种方式，支持包括redis、MySQL、docker部署等
+
+> 2025-10-04 更新：仓库新增 `docs/CODE_OVERVIEW.md` 与 `docs/CODE_FILES.md`，记录最新代码结构；账户设置页同步开放“登录提醒”安全项。

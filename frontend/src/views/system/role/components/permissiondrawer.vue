@@ -131,9 +131,9 @@ watch(
 
 .custom-tree-node {
   display: flex;
+  gap: 5px;
   align-items: center;
   // justify-content: space-between;
   width: 100%;
-  gap: 5px;
 }
 </style>

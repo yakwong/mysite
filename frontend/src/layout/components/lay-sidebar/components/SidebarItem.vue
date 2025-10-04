@@ -51,13 +51,7 @@ const getSubMenuIconStyle = computed((): CSSProperties => {
 const textClass = computed(() => {
   const item = props.item;
   const baseClass = "w-full! text-inherit!";
-  if (
-    layout.value !== "horizontal" &&
-    isCollapse.value &&
-    !toRaw(item.meta.icon) &&
-    ((layout.value === "vertical" && item.parentId === null) ||
-      (layout.value === "mix" && item.pathList.length === 2))
-  ) {
+  if (layout.value !== "horizontal" && isCollapse.value && !toRaw(item.meta.icon) && ((layout.value === "vertical" && item.parentId === null) || (layout.value === "mix" && item.pathList.length === 2))) {
     return `${baseClass} min-w-[54px]! text-center! px-3!`;
   }
   return baseClass;
@@ -112,20 +106,7 @@ function resolvePath(routePath) {
       <div v-if="toRaw(item.meta.icon)" class="sub-menu-icon" :style="getSubMenuIconStyle">
         <component :is="useRenderIcon(toRaw(onlyOneChild.meta.icon) || (item.meta && toRaw(item.meta.icon)))" />
       </div>
-      <el-text
-        v-if="
-          (!item?.meta.icon &&
-            isCollapse &&
-            layout === 'vertical' &&
-            item?.pathList?.length === 1) ||
-          (!onlyOneChild.meta.icon &&
-            isCollapse &&
-            layout === 'mix' &&
-            item?.pathList?.length === 2)
-        "
-        truncated
-        class="w-full! px-3! min-w-[54px]! text-center! text-inherit!"
-      >
+      <el-text v-if="(!item?.meta.icon && isCollapse && layout === 'vertical' && item?.pathList?.length === 1) || (!onlyOneChild.meta.icon && isCollapse && layout === 'mix' && item?.pathList?.length === 2)" truncated class="w-full! px-3! min-w-[54px]! text-center! text-inherit!">
         {{ onlyOneChild.meta.title }}
       </el-text>
 

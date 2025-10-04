@@ -12,11 +12,12 @@ import LaySidebarFullScreen from "../lay-sidebar/components/SidebarFullScreen.vu
 
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
+import AccountSettingsIcon from "~icons/ri/user-settings-line";
 
 const menuRef = ref();
 const defaultActive = ref(null);
 
-const { route, device, logout, onPanel, resolvePath, username, userAvatar, getDivStyle, avatarsStyle } = useNav();
+const { route, device, logout, onPanel, resolvePath, username, userAvatar, getDivStyle, avatarsStyle, toAccountSettings } = useNav();
 
 function getDefaultActive(routePath) {
   const wholeMenus = usePermissionStoreHook().wholeMenus;
@@ -73,7 +74,11 @@ watch(
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
-            <el-dropdown-item @click="logout">
+            <el-dropdown-item @click="toAccountSettings">
+              <IconifyIconOffline :icon="AccountSettingsIcon" style="margin: 5px" />
+              账户设置
+            </el-dropdown-item>
+            <el-dropdown-item divided @click="logout">
               <IconifyIconOffline :icon="LogoutCircleRLine" style="margin: 5px" />
               退出系统
             </el-dropdown-item>

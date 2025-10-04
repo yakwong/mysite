@@ -4,9 +4,7 @@ import pluginVue from "eslint-plugin-vue";
 import * as parserVue from "vue-eslint-parser";
 import configPrettier from "eslint-config-prettier";
 import pluginPrettier from "eslint-plugin-prettier";
-import { defineConfig, globalIgnores } from "eslint/config";
-
-export default defineFlatConfig([
+export default [
   {
     ...js.configs.recommended,
     ignores: ["**/.*", "dist/*", "*.d.ts", "public/*", "src/assets/**", "src/**/iconfont/**"],
@@ -157,4 +155,4 @@ export default defineFlatConfig([
       ]
     }
   }
-]);
+];

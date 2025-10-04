@@ -357,54 +357,19 @@ onUnmounted(() => removeMatchMedia);
 
       <span v-if="useAppStoreHook().getViewportWidth > 1280">
         <p :class="['mt-5!', pClass]">页宽</p>
-        <Segmented
-          resize
-          class="mb-2 select-none"
-          :modelValue="isNumber(settings.stretch) ? 1 : 0"
-          :options="stretchTypeOptions"
-          @change="stretchTypeChange"
-        />
-        <el-input-number
-          v-if="isNumber(settings.stretch)"
-          v-model="settings.stretch as number"
-          :min="1280"
-          :max="1600"
-          controls-position="right"
-          @change="value => setStretch(value)"
-        />
-        <button
-          v-else
-          v-ripple="{ class: 'text-gray-300' }"
-          class="bg-transparent flex-c w-full h-20 rounded-md border border-[var(--pure-border-color)]"
-          @click="setStretch(!settings.stretch)"
-        >
-          <div
-            class="flex-bc transition-all duration-300"
-            :class="[settings.stretch ? 'w-[24%]' : 'w-[50%]']"
-            style="color: var(--el-color-primary)"
-          >
-            <IconifyIconOffline
-              :icon="settings.stretch ? RightArrow : LeftArrow"
-            />
-            <div
-              class="grow border-0 border-b border-dashed"
-              style="border-color: var(--el-color-primary)"
-            />
-            <IconifyIconOffline
-              :icon="settings.stretch ? LeftArrow : RightArrow"
-            />
+        <Segmented resize class="mb-2 select-none" :modelValue="isNumber(settings.stretch) ? 1 : 0" :options="stretchTypeOptions" @change="stretchTypeChange" />
+        <el-input-number v-if="isNumber(settings.stretch)" v-model="settings.stretch as number" :min="1280" :max="1600" controls-position="right" @change="value => setStretch(value)" />
+        <button v-else v-ripple="{ class: 'text-gray-300' }" class="bg-transparent flex-c w-full h-20 rounded-md border border-[var(--pure-border-color)]" @click="setStretch(!settings.stretch)">
+          <div class="flex-bc transition-all duration-300" :class="[settings.stretch ? 'w-[24%]' : 'w-[50%]']" style="color: var(--el-color-primary)">
+            <IconifyIconOffline :icon="settings.stretch ? RightArrow : LeftArrow" />
+            <div class="grow border-0 border-b border-dashed" style="border-color: var(--el-color-primary)" />
+            <IconifyIconOffline :icon="settings.stretch ? LeftArrow : RightArrow" />
           </div>
         </button>
       </span>
 
       <p :class="['mt-4!', pClass]">页签风格</p>
-      <Segmented
-        resize
-        class="select-none"
-        :modelValue="markValue === 'smart' ? 0 : markValue === 'card' ? 1 : 2"
-        :options="markOptions"
-        @change="onChange"
-      />
+      <Segmented resize class="select-none" :modelValue="markValue === 'smart' ? 0 : markValue === 'card' ? 1 : 2" :options="markOptions" @change="onChange" />
 
       <p class="mt-5! font-medium text-sm dark:text-white">界面显示</p>
       <ul class="setting">

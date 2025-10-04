@@ -30,6 +30,8 @@ CREATE TABLE `user_user` (
   `nickname` varchar(100) DEFAULT NULL,
   `username` varchar(100) NOT NULL,
   `email` varchar(254) NOT NULL,
+  `phone` varchar(11) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
   `status` tinyint(1) NOT NULL,
   `is_staff` tinyint(1) NOT NULL,
   `is_superuser` tinyint(1) NOT NULL,
@@ -38,6 +40,7 @@ CREATE TABLE `user_user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `phone` (`phone`),
   KEY `user_user_dept_id_08240868_fk_system_deptinfo_id` (`dept_id`),
   CONSTRAINT `user_user_dept_id_08240868_fk_system_deptinfo_id` FOREIGN KEY (`dept_id`) REFERENCES `system_deptinfo` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -49,7 +52,7 @@ CREATE TABLE `user_user` (
 
 LOCK TABLES `user_user` WRITE;
 /*!40000 ALTER TABLE `user_user` DISABLE KEYS */;
-INSERT INTO `user_user` VALUES (19,'pbkdf2_sha256$870000$R90VsnVe8i1AVtBtgxHHAW$GhvVPF4GuZ/rt3SQG6kitZLuJaE9Me90RqZexDZCvPU=','2025-05-02 05:44:07.669278',NULL,'admin','admin','admin@kworlds.cn',1,0,0,'4c76aef77c654505a614e7b2b2c5b2af','2024-12-02 07:47:20.004112'),(20,'pbkdf2_sha256$870000$hzPFnr6jbZzGmNnWMKIxnD$ALHqkSbstKpe9hzjgLIvl0LVU5Da94mQQ1dOvrYG4n4=','2024-12-02 07:48:55.271252',NULL,'preview','预览用户','preview@kworlds.cn',1,0,0,'87bf3be7d0484121a5926d50c985008a','2024-12-02 07:48:11.436502');
+INSERT INTO `user_user` VALUES (19,'pbkdf2_sha256$870000$R90VsnVe8i1AVtBtgxHHAW$GhvVPF4GuZ/rt3SQG6kitZLuJaE9Me90RqZexDZCvPU=','2025-05-02 05:44:07.669278',NULL,'admin','admin','admin@kworlds.cn',NULL,NULL,1,0,0,'4c76aef77c654505a614e7b2b2c5b2af','2024-12-02 07:47:20.004112'),(20,'pbkdf2_sha256$870000$hzPFnr6jbZzGmNnWMKIxnD$ALHqkSbstKpe9hzjgLIvl0LVU5Da94mQQ1dOvrYG4n4=','2024-12-02 07:48:55.271252',NULL,'preview','预览用户','preview@kworlds.cn',NULL,NULL,1,0,0,'87bf3be7d0484121a5926d50c985008a','2024-12-02 07:48:11.436502');
 /*!40000 ALTER TABLE `user_user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

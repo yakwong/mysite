@@ -14,9 +14,11 @@ actions:
 features:
   - title: RBAC前后端权限校验
     details: 支持动态路由；前端可自定义任意模块显示所需权限；后端支持中间件和装饰器两种接口权限校验方法。
-  - title: Vue3
-    details: 基于pure admin开源前端框架进行二次开发(Vue3驱动)，适配Django(DRF)后端。
-  - title: Django(DRF)
-    details: 使用标准化DRF项目文件目录格式与逻辑，轻松上手。
+  - title: 账户安全中心
+    details: 个人中心整合密码管理、两步验证、登录提醒、密保问题、备用邮箱等安全项。
+  - title: Vue3 + Django(DRF)
+    details: 前端基于 Pure Admin 精简版，后端遵循标准化 DRF 项目结构，协同开发更轻松。
+  - title: 代码地图
+    details: 仓库 docs 目录新增 CODE_OVERVIEW 与 CODE_FILES，方便快速定位源码和接口定义。
 footer: MIT Licensed | Copyright © 2024-present KWORLD‘s Roy Ke
 ---

@@ -41,6 +41,15 @@ export default {
         title: "菜单权限",
         keepAlive: false
       }
+    },
+    {
+      path: "/system/dingtalk",
+      name: "dingtalk",
+      component: () => import("@/views/system/dingtalk/index.vue"),
+      meta: {
+        title: "钉钉对接",
+        keepAlive: false
+      }
     }
   ]
 } satisfies RouteConfigsTable;
