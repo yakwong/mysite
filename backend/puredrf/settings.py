@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",  # 过滤器
     # 自定义app
+    "apps.dingtalk",
     "apps.user",
     "apps.system",
     "apps.functiontest",
@@ -194,6 +195,13 @@ SIMPLE_JWT = {
 }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# 钉钉集成默认配置
+DINGTALK = {
+    "DEFAULT_TIMEOUT": 10,
+    "DEFAULT_RETRIES": 3,
+    "PROXY": None,
+}
 
 # ================================================= #
 # ********************* 跨域设置 ******************* #

@@ -2,7 +2,7 @@
 import { deviceDetection } from "@pureadmin/utils";
 import { getSecurityLogs, type SecurityLogItem } from "@/api/user";
 import { onMounted, reactive, ref } from "vue";
-import type { PaginationProps, TableColumnList } from "@pureadmin/table";
+import type { PaginationProps, TableColumns } from "@pureadmin/table";
 
 const loading = ref(true);
 const dataList = ref<SecurityLogItem[]>([]);
@@ -15,7 +15,7 @@ const pagination = reactive<PaginationProps>({
   pageSizes: [10, 20, 50]
 });
 
-const columns: TableColumnList = [
+const columns: TableColumns[] = [
   {
     label: "详情",
     prop: "summary",

@@ -55,6 +55,13 @@
 - `serializers.py`：格式化日志摘要与地理信息。
 - `filters.py`：提供基于 IP/状态筛选能力。
 
+#### `apps/dingtalk`
+- **模型**：`DingTalkConfig`、`DingTalkDepartment`、`DingTalkUser`、`DingTalkAttendanceRecord`、`SyncCursor` 等集中到新应用，`enabled_configs()`、`load()` 封装默认配置回退。
+- **序列化/视图**：`DingTalkConfigViewSet` 支持 Token 重置与增量同步信息，`SyncCommandView` 统一处理测试连通/同步入口，异常统一落库 `DingTalkSyncLog`。
+- **服务层**：`services.client.DingTalkClient` 负责调用钉钉开放平台、令牌管理，`services.sync.SyncService` 封装部门/用户/考勤同步及日志写入，`services.scheduler` 预留计划任务挂钩。
+- **权限**：`CanManageDingTalk` 限制管理操作仅限 `is_staff` 用户，`CanViewDingTalk` 允许普通登录用户浏览同步结果。
+- **测试**：`tests/test_api.py` 覆盖配置列表、同步命令、远端预览、考勤写入等关键路径。
+
 #### `apps/functiontest`
 - 包含演示用视图/URL 模块，用于 DRF 基础功能验证。
 
@@ -85,6 +92,11 @@
 - `src/directives/`：自定义指令如 `v-auth`、`v-copy`、`v-longpress`。
 
 ### 页面视图 `src/views/`
+### 模块化钉钉前端 `src/modules/dingtalk`
+- `views/`：包含 Dashboard、Logs、Departments、Users、Attendance、Settings 等二级页面，与后端接口一一对应。
+- `api/index.ts`：封装 `/api/dingtalk/**` 请求、分页响应与同步命令参数类型。
+- `store/useDingtalkStore.ts`：简单管理当前选中配置与配置列表，便于多配置切换。
+
 - `account-settings/`：个人中心（Profile、Preferences、SecurityLog、AccountManagement）。
   - `AccountManagement.vue`：整合密码、密保、备用邮箱、两步验证、**登录提醒开关** 等安全项。
   - `Preferences.vue`：新增基于远端 `login_notifier` + 本地偏好（系统消息、待办任务）管理，支持本地持久化。
@@ -108,6 +120,12 @@
 - `locales/*.yaml`：中英文翻译。
 - `types/`：声明全局组件、Pinia、Router 类型，确保 TypeScript 体验。
 - `docs/`：前端二级文档（部署、升级指南等）。
+
+## 数据初始化说明（新增）
+
+- `backend/data_base.json`：抽取自现网默认数据，用于快速导入基础角色、菜单、管理员账号。
+- `backend/data_custom.json`：示例性定制数据，可在导入基础数据后按需叠加部门/角色结构。
+- 两份 JSON 与 `backend/script/sql/` SQL 初始化互补，可根据部署环境选择其一；使用 JSON 时建议通过 `python manage.py loaddata` 执行。
 
 ## 文档资源更新
 

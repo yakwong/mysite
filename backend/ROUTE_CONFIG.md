@@ -14,6 +14,30 @@
 | 后端数据 | `backend/data.json` | 数据库初始化数据 | 中 |
 | 运行时 | `backend/db.sqlite3` (`system_menu` 表) | 实际生效配置 | **高** |
 
+## 钉钉独立模块接口
+
+钉钉模块已拆分为独立的 `apps.dingtalk`，以下为核心 REST 接口（省略标准 `list`/`retrieve`/`create`/`update`/`destroy` 的 `OPTIONS`）：
+
+| 路径 | 方法 | 权限代码示例 | 说明 |
+| ---- | ---- | ------------ | ---- |
+| `/api/dingtalk/configs/` | GET/POST | `/api/dingtalk/configs/:read` | 查询或创建钉钉配置，默认返回 `default` 配置 |
+| `/api/dingtalk/configs/{id}/` | GET/PUT/PATCH/DELETE | `/api/dingtalk/configs/:change` | 管理指定配置，更新 AppKey 自动重置 Token |
+| `/api/dingtalk/configs/{id}/sync_info/` | GET | `/api/dingtalk/configs/sync_info/:read` | 获取最近同步状态、计数与 Token 过期时间 |
+| `/api/dingtalk/{config_id}/sync/` | POST | `/api/dingtalk/sync/:add` | 触发指定配置的同步（测试连通、部门、用户、考勤、全量） |
+| `/api/dingtalk/sync/` | POST | `/api/dingtalk/sync/:add` | 使用默认配置触发同步 |
+| `/api/dingtalk/logs/` | GET | `/api/dingtalk/logs/:read` | 查看同步日志，支持状态/时间过滤 |
+| `/api/dingtalk/departments/remote/` | GET | `/api/dingtalk/departments/remote/:read` | 直连钉钉预览远端部门（支持 `config_id`、`limit`） |
+| `/api/dingtalk/departments/` | GET | `/api/dingtalk/departments/:read` | 查看本地持久化的部门数据 |
+| `/api/dingtalk/users/remote/` | GET | `/api/dingtalk/users/remote/:read` | 直连钉钉预览远端用户 |
+| `/api/dingtalk/users/` | GET | `/api/dingtalk/users/:read` | 查看本地持久化的用户数据 |
+| `/api/dingtalk/attendances/` | GET | `/api/dingtalk/attendances/:read` | 查看本地持久化的考勤记录 |
+| `/api/dingtalk/cursors/` | GET | `/api/dingtalk/cursors/:read` | 查询增量同步游标 |
+| `/api/dingtalk/dept-bindings/` | GET/POST | `/api/dingtalk/dept-bindings/:change` | 管理系统部门与钉钉部门的绑定关系 |
+| `/api/dingtalk/user-bindings/` | GET/POST | `/api/dingtalk/user-bindings/:change` | 管理系统用户与钉钉用户的绑定关系 |
+| `/api/dingtalk/{config_id}/callbacks/` | POST | `/api/dingtalk/callbacks/:add` | 钉钉事件回调入口（需在钉钉管理后台配置 token/aes_key） |
+
+钉钉接口默认使用 JWT 鉴权与 `CanManageDingTalk`/`CanViewDingTalk` 权限类，可在路由管理中按需配置角色-菜单映射。
+
 ## 当前配置
 
 **所有位置统一配置为:** `redirect: "/welcome"`

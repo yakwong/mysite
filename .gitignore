@@ -65,12 +65,14 @@ frontend/.temp/
 frontend/.cache/
 frontend/.output/
 frontend/.nuxt/
+frontend/.run/
 
 # Backend
 backend/staticfiles/
 backend/media/
 backend/*.sqlite3
 backend/*.log
+backend/.run/
 
 # Logs
 logs/

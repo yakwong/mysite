@@ -37,33 +37,53 @@ interface MessageParams {
 /**
  * `Message` 消息提示函数
  */
-const message = (message: string | VNode | (() => VNode), params?: MessageParams): MessageHandler => {
+type MessageHandlerFunction = (message: string | VNode | (() => VNode), params?: MessageParams) => MessageHandler;
+
+interface MessageApi extends MessageHandlerFunction {
+  success: MessageHandlerFunction;
+  error: MessageHandlerFunction;
+  warning: MessageHandlerFunction;
+  info: MessageHandlerFunction;
+}
+
+const baseMessage: MessageHandlerFunction = (message: string | VNode | (() => VNode), params?: MessageParams): MessageHandler => {
   if (!params) {
     return ElMessage({
       message,
       customClass: "pure-message"
     });
-  } else {
-    const { icon, type = "info", plain = false, dangerouslyUseHTMLString = false, customClass = "antd", duration = 2000, showClose = false, offset = 16, appendTo = document.body, grouping = false, repeatNum = 1, onClose } = params;
-
-    return ElMessage({
-      message,
-      icon,
-      type,
-      plain,
-      dangerouslyUseHTMLString,
-      duration,
-      showClose,
-      offset,
-      appendTo,
-      grouping,
-      repeatNum,
-      // 全局搜 pure-message 即可知道该类的样式位置
-      customClass: customClass === "antd" ? "pure-message" : "",
-      onClose: () => (isFunction(onClose) ? onClose() : null)
-    });
   }
+
+  const { icon, type = "info", plain = false, dangerouslyUseHTMLString = false, customClass = "antd", duration = 2000, showClose = false, offset = 16, appendTo = document.body, grouping = false, repeatNum = 1, onClose } = params;
+
+  return ElMessage({
+    message,
+    icon,
+    type,
+    plain,
+    dangerouslyUseHTMLString,
+    duration,
+    showClose,
+    offset,
+    appendTo,
+    grouping,
+    repeatNum,
+    // 全局搜 pure-message 即可知道该类的样式位置
+    customClass: customClass === "antd" ? "pure-message" : "",
+    onClose: () => (isFunction(onClose) ? onClose() : null)
+  });
 };
+
+const message = baseMessage as MessageApi;
+
+const createTypedMessage = (type: messageTypes): MessageHandlerFunction => {
+  return (msg, params) => baseMessage(msg, { ...params, type });
+};
+
+message.success = createTypedMessage("success");
+message.error = createTypedMessage("error");
+message.warning = createTypedMessage("warning");
+message.info = createTypedMessage("info");
 
 /**
  * 关闭所有 `Message` 消息提示函数

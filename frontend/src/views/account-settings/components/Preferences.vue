@@ -25,11 +25,12 @@ const defaultLocalState: Record<LocalPreferenceKey, boolean> = {
   systemMessage: true,
   todoTask: true
 };
-const savedLocal = storage.getItem<Record<LocalPreferenceKey, boolean>>(STORAGE_KEY) ?? {};
-const localState = reactive<Record<LocalPreferenceKey, boolean>>({
-  systemMessage: savedLocal.systemMessage ?? defaultLocalState.systemMessage,
-  todoTask: savedLocal.todoTask ?? defaultLocalState.todoTask
-});
+const savedLocal = storage.getItem<Record<LocalPreferenceKey, boolean>>(STORAGE_KEY);
+const initialLocalState = {
+  ...defaultLocalState,
+  ...(savedLocal ?? {})
+} as Record<LocalPreferenceKey, boolean>;
+const localState = reactive<Record<LocalPreferenceKey, boolean>>(initialLocalState);
 
 const loading = ref(true);
 const list = ref<PreferenceItem[]>([
@@ -77,11 +78,19 @@ async function fetchPreferences() {
   }
 }
 
-async function onChange(val: boolean, item: PreferenceItem) {
+function normalizeSwitchValue(val: boolean | string | number): boolean {
+  if (typeof val === "boolean") return val;
+  if (typeof val === "number") return val === 1;
+  return val === "true";
+}
+
+async function onChange(rawVal: boolean | string | number, item: PreferenceItem) {
+  const val = normalizeSwitchValue(rawVal);
   if (item.type === "remote") {
     item.loading = true;
     try {
       await toggleLoginNotifier({ enabled: val });
+      item.checked = val;
       message(val ? "已开启登录提醒" : "已关闭登录提醒", { type: "success" });
     } catch (error) {
       item.checked = !val;
@@ -94,6 +103,7 @@ async function onChange(val: boolean, item: PreferenceItem) {
 
   const key = item.key as LocalPreferenceKey;
   localState[key] = val;
+  item.checked = val;
   persistLocal();
   message(`${item.title}已${val ? "开启" : "关闭"}`, { type: "success" });
 }

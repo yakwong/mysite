@@ -25,6 +25,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/user/", include("apps.user.urls")),  # 包含user应用的URL
     path("api/system/", include("apps.system.urls")),  # 包含system应用的URL
+    path("api/dingtalk/", include("apps.dingtalk.urls")),  # 钉钉独立模块
     path("api/monitor/", include("apps.monitor.urls")),  # 包含monitor应用的URL
     path("api/test/", include("apps.functiontest.urls")),  # 包含functiontest应用的URL
     path("api/token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
