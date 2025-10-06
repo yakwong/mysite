@@ -38,6 +38,27 @@
 
 钉钉接口默认使用 JWT 鉴权与 `CanManageDingTalk`/`CanViewDingTalk` 权限类，可在路由管理中按需配置角色-菜单映射。
 
+## 人力资源模块接口
+
+| 路径 | 方法 | 权限代码示例 | 说明 |
+| ---- | ---- | ------------ | ---- |
+| `/api/hr/departments/` | GET/POST | `/api/hr/departments/:read` | 查询或创建部门，支持 `keyword`、`status` 过滤 |
+| `/api/hr/departments/{id}/` | GET/PATCH/DELETE | `/api/hr/departments/:change` | 维护单个部门信息、上下级关系 |
+| `/api/hr/departments/import/dingtalk/` | POST | `/api/hr/departments/import/:add` | 从钉钉同步最新部门至 HR 模块 |
+| `/api/hr/employees/` | GET/POST | `/api/hr/employees/:read` | 查询或新增员工，支持部门、状态过滤 |
+| `/api/hr/employees/{id}/` | GET/PATCH/DELETE | `/api/hr/employees/:change` | 编辑员工基础信息、雇佣状态、薪资参数 |
+| `/api/hr/employees/import/dingtalk/` | POST | `/api/hr/employees/import/:add` | 从钉钉导入员工快照（自动匹配部门） |
+| `/api/hr/attendance/rules/` | GET/POST | `/api/hr/attendance/rules/:read` | 管理考勤规则，配置工作时间与容忍阈值 |
+| `/api/hr/attendance/rules/{id}/` | GET/PATCH/DELETE | `/api/hr/attendance/rules/:change` | 更新或删除指定规则 |
+| `/api/hr/attendance/summary/` | GET | `/api/hr/attendance/summary/:read` | 查询考勤统计结果，支持员工、规则、时间段过滤 |
+| `/api/hr/attendance/summary/calculate/` | POST | `/api/hr/attendance/summary/:add` | 依据钉钉打卡记录按规则生成考勤汇总 |
+| `/api/hr/attendance/summary/status/` | POST | `/api/hr/attendance/summary/:change` | 批量更新统计状态（待确认/已确认） |
+| `/api/hr/payroll/rules/` | GET/POST | `/api/hr/payroll/rules/:read` | 管理薪资计算规则（加班倍数、税率、补贴） |
+| `/api/hr/payroll/rules/{id}/` | GET/PATCH/DELETE | `/api/hr/payroll/rules/:change` | 更新或删除指定薪资规则 |
+| `/api/hr/payroll/records/` | GET | `/api/hr/payroll/records/:read` | 查看薪资发放记录，支持规则、周期过滤 |
+| `/api/hr/payroll/records/{id}/` | GET/PATCH/DELETE | `/api/hr/payroll/records/:change` | 调整单条发薪记录（备注、状态等） |
+| `/api/hr/payroll/records/calculate/` | POST | `/api/hr/payroll/records/:add` | 按规则和考勤统计批量计算薪资 |
+
 ## 当前配置
 
 **所有位置统一配置为:** `redirect: "/welcome"`

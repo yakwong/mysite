@@ -282,6 +282,9 @@ function handleAliveRoute({ name }: ToRouteType, mode?: string) {
 function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
   if (!arrRoutes || !arrRoutes.length) return;
   const modulesRoutesKeys = Object.keys(modulesRoutes);
+  if (typeof window !== "undefined" && !(window as any).__ROUTE_GLOBS__) {
+    (window as any).__ROUTE_GLOBS__ = modulesRoutesKeys;
+  }
   arrRoutes.forEach((v: RouteRecordRaw) => {
     // 将backstage属性加入meta，标识此路由为后端返回路由
     v.meta.backstage = true;
@@ -295,8 +298,23 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       // 对后端传component组件路径和不传做兼容（如果后端传component组件路径，那么path可以随便写，如果不传，component组件路径会跟path保持一致）
       // 若存在重定向则不为该路由匹配组件，避免子路由误调用父路由组件的bug
       if (!v.redirect) {
-        const index = v?.component ? modulesRoutesKeys.findIndex(ev => ev.includes(v.component as any)) : modulesRoutesKeys.findIndex(ev => ev.includes(v.path));
-        v.component = modulesRoutes[modulesRoutesKeys[index]];
+        const candidates: string[] = [];
+        if (typeof v.component === "string" && v.component.length) candidates.push(v.component as string);
+        candidates.push(`${v.path}/index`);
+        candidates.push(v.path);
+        let matchKey: string | undefined;
+        for (const candidate of candidates) {
+          const normalized = candidate
+            .replace(/\.vue$/i, "")
+            .replace(/^\//, "");
+          matchKey = modulesRoutesKeys.find(ev => ev.includes(normalized));
+          if (matchKey) break;
+        }
+        if (matchKey) {
+          v.component = modulesRoutes[matchKey];
+        } else {
+          console.warn("[router] 未匹配到组件", v.path, v.component);
+        }
       }
     }
     if (v?.children && v.children.length) {

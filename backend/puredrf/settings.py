@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "apps.system",
     "apps.functiontest",
     "apps.monitor",
+    "apps.hr",
 ]
 
 MIDDLEWARE = [

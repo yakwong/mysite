@@ -10,6 +10,29 @@ import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { darken, lighten, useGlobal, storageLocal } from "@pureadmin/utils";
 
+type LayoutStorage = {
+  layout: string;
+  theme: string;
+  darkMode: boolean;
+  sidebarStatus: boolean;
+  epThemeColor: string;
+  themeColor: string;
+  overallStyle: string;
+};
+
+function buildDefaultLayoutStorage(options: Partial<LayoutStorage> = {}): LayoutStorage {
+  const config = getConfig();
+  return {
+    layout: options.layout ?? "vertical",
+    theme: options.theme ?? (config?.Theme ?? "light"),
+    darkMode: options.darkMode ?? false,
+    sidebarStatus: options.sidebarStatus ?? true,
+    epThemeColor: options.epThemeColor ?? config?.EpThemeColor ?? "#409EFF",
+    themeColor: options.themeColor ?? (config?.Theme ?? "light"),
+    overallStyle: options.overallStyle ?? "light"
+  };
+}
+
 export function useDataThemeChange() {
   const { layoutTheme, layout } = useLayout();
   const themeColors = ref<Array<themeColorsType>>([
@@ -32,8 +55,12 @@ export function useDataThemeChange() {
   ]);
 
   const { $storage } = useGlobal<GlobalPropertiesApi>();
-  const dataTheme = ref<boolean>($storage?.layout?.darkMode);
-  const overallStyle = ref<string>($storage?.layout?.overallStyle);
+  const currentLayoutValue = (layout.value as string) ?? $storage?.layout?.layout;
+  const mergedLayoutStorage = buildDefaultLayoutStorage({ layout: currentLayoutValue, ...($storage?.layout ?? {}) });
+  $storage.layout = { ...mergedLayoutStorage };
+
+  const dataTheme = ref<boolean>(mergedLayoutStorage.darkMode);
+  const overallStyle = ref<string>(mergedLayoutStorage.overallStyle);
   const body = document.documentElement as HTMLElement;
 
   function toggleClass(flag: boolean, clsName: string, target?: HTMLElement) {
@@ -48,16 +75,17 @@ export function useDataThemeChange() {
     layoutTheme.value.theme = theme;
     document.documentElement.setAttribute("data-theme", theme);
     // 如果非isClick，保留之前的themeColor
-    const storageThemeColor = $storage.layout.themeColor;
-    $storage.layout = {
+    const storageThemeColor = mergedLayoutStorage.themeColor;
+    Object.assign(mergedLayoutStorage, {
       layout: layout.value,
       theme,
       darkMode: dataTheme.value,
-      sidebarStatus: $storage.layout?.sidebarStatus,
-      epThemeColor: $storage.layout?.epThemeColor,
+      sidebarStatus: mergedLayoutStorage.sidebarStatus,
+      epThemeColor: mergedLayoutStorage.epThemeColor,
       themeColor: isClick ? theme : storageThemeColor,
       overallStyle: overallStyle.value
-    };
+    });
+    $storage.layout = { ...mergedLayoutStorage };
 
     if (theme === "default" || theme === "light") {
       setEpThemeColor(getConfig().EpThemeColor);
@@ -95,7 +123,7 @@ export function useDataThemeChange() {
     if (dataTheme.value) {
       document.documentElement.classList.add("dark");
     } else {
-      if ($storage.layout.themeColor === "light") {
+      if (mergedLayoutStorage.themeColor === "light") {
         setLayoutThemeColor("light", false);
       }
       document.documentElement.classList.remove("dark");
