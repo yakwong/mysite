@@ -18,10 +18,7 @@ const getLinkProps = (item: menuType) => {
     };
   }
   return {
-    to: {
-      path: item.path,
-      query: item.query ?? undefined
-    }
+    to: item
   };
 };
 </script>
