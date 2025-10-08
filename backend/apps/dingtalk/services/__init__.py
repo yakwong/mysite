@@ -3,6 +3,7 @@ from .sync import SyncService
 from .tasks import (
     sync_departments_task,
     sync_users_task,
+    sync_dimission_users_task,
     sync_attendance_task,
     full_sync_task,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "SyncService",
     "sync_departments_task",
     "sync_users_task",
+    "sync_dimission_users_task",
     "sync_attendance_task",
     "full_sync_task",
     "DingTalkAPIError",

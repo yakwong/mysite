@@ -72,34 +72,19 @@ const logsPagination = reactive({ page: 1, size: 10, total: 0 });
 const pagination = reactive({ page: 1, size: 10, total: 0 });
 const filters = reactive({ config_id: "", keyword: "" });
 
-const ensureConfigId = () => {
-  if (filters.config_id && configs.value.some(item => item.id === filters.config_id)) {
-    return filters.config_id;
-  }
-  if (currentConfigId.value && configs.value.some(item => item.id === currentConfigId.value)) {
-    filters.config_id = currentConfigId.value;
-    return filters.config_id;
-  }
-  if (configs.value.length) {
-    filters.config_id = configs.value[0].id;
-  }
-  return filters.config_id;
-};
-
 const loadConfigs = async () => {
-  if (configs.value.length) {
-    ensureConfigId();
-    return;
+  if (!configs.value.length) {
+    const { data } = await listConfigs();
+    store.setConfigs(data || []);
   }
-  const { data } = await listConfigs();
-  store.setConfigs(data || []);
-  ensureConfigId();
+  filters.config_id = store.ensureCurrentConfigId(filters.config_id);
 };
 
 const loadDepartments = async () => {
   loading.value = true;
   try {
-    const configId = ensureConfigId();
+    const configId = store.ensureCurrentConfigId(filters.config_id);
+    filters.config_id = configId;
     if (!configId) {
       departments.value = [];
       pagination.total = 0;
@@ -124,7 +109,8 @@ const loadDepartments = async () => {
 const loadLogs = async (page = logsPagination.page) => {
   logsLoading.value = true;
   try {
-    const configId = ensureConfigId();
+    const configId = store.ensureCurrentConfigId(filters.config_id);
+    filters.config_id = configId;
     if (!configId) {
       logs.value = [];
       logsPagination.total = 0;
@@ -144,8 +130,7 @@ const handleReload = async () => {
 };
 
 const handleConfigChange = async (id: string) => {
-  filters.config_id = id;
-  store.setCurrentConfig(id);
+  filters.config_id = store.ensureCurrentConfigId(id);
   await handleReload();
 };
 
@@ -160,7 +145,8 @@ const handleLogPageChange = async (page: number) => {
 };
 
 const handleSync = async () => {
-  const configId = ensureConfigId();
+  const configId = store.ensureCurrentConfigId(filters.config_id);
+  filters.config_id = configId;
   if (!configId) {
     message.warning("请先选择配置");
     return;
@@ -182,7 +168,8 @@ const handleSync = async () => {
 
 const previewRemote = async () => {
   try {
-    const configId = ensureConfigId();
+    const configId = store.ensureCurrentConfigId(filters.config_id);
+    filters.config_id = configId;
     const { data } = await listRemoteDepartments({ config_id: configId, limit: 50 });
     remoteDepartments.value = data || [];
     remoteVisible.value = true;
@@ -208,7 +195,7 @@ watch(
   () => currentConfigId.value,
   async id => {
     if (id) {
-      filters.config_id = id;
+      filters.config_id = store.ensureCurrentConfigId(id);
       await handleReload();
     }
   }

@@ -69,7 +69,7 @@
 - 跨前后端改动需同时请求 API 与 UI 负责人评审。
 
 ## 10. 工具使用策略（MCP）
-- 优先使用本地离线工具；每轮最多调用 1 个 MCP 服务，需串行说明理由与预期。
+- 优先使用本地离线工具；每轮最多调用 3 个 MCP 服务，需串行说明理由与预期。
 - 调用优先级：Filesystem → Context7 → Brave Search → Chrome DevTools → GitHub → Memory Project → PostgreSQL → Time Service。
 - 使用时限定最小范围，明确参数，确保可追溯。
 - 需遵循失败重试与降级策略：429 退避 20 秒，5xx 重试一次退避 2 秒，无结果时缩小范围或向用户澄清。

@@ -11,20 +11,39 @@ import { ascending, getTopMenu, initRouter, isOneOfArray, getHistoryMode, findRo
 import { type Router, type RouteRecordRaw, type RouteComponent, createRouter } from "vue-router";
 import { type DataInfo, userKey, removeToken, multipleTabsKey } from "@/utils/auth";
 
-/** 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件，除了 remaining.ts 文件
- * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
- * 如何排除文件请看：https://cn.vitejs.dev/guide/features.html#negative-patterns
+const Layout = () => import("@/layout/index.vue");
+const hideHomeMenu = import.meta.env.VITE_HIDE_HOME === "true";
+
+/**
+ * 仅保留基础布局 + 欢迎页，菜单完全依赖后端动态路由。
+ * 欢迎页在此作为兜底页面，不参与菜单展示。
  */
-const modules: Record<string, any> = import.meta.glob(["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/system.ts"], {
-  eager: true
-});
+const staticRootRoute: RouteRecordRaw = {
+  path: "/",
+  name: "Root",
+  component: Layout,
+  redirect: "/welcome",
+  meta: {
+    title: "首页",
+    icon: "ep/home-filled",
+    rank: 0,
+    showLink: !hideHomeMenu
+  },
+  children: [
+    {
+      path: "/welcome",
+      name: "Welcome",
+      component: () => import("@/views/welcome/index.vue"),
+      meta: {
+        title: "首页",
+        showLink: !hideHomeMenu
+      }
+    }
+  ]
+};
 
 /** 原始静态路由（未做任何处理） */
-const routes = [];
-
-Object.keys(modules).forEach(key => {
-  routes.push(modules[key].default);
-});
+const routes = [staticRootRoute];
 
 /** 导出处理后的静态路由（三级及以上的路由全部拍成二级） */
 export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(formatFlatteningRoutes(buildHierarchyTree(ascending(routes.flat(Infinity)))));

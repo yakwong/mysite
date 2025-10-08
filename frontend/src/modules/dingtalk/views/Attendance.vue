@@ -12,9 +12,16 @@
     </div>
     <el-table :data="records" border stripe>
       <el-table-column prop="record_id" label="记录ID" width="200" />
+      <el-table-column prop="user_name" label="姓名" width="140">
+        <template #default="{ row }">{{ row.user_name || "-" }}</template>
+      </el-table-column>
       <el-table-column prop="userid" label="用户ID" width="160" />
-      <el-table-column prop="check_type" label="类型" width="120" />
-      <el-table-column prop="time_result" label="结果" width="120" />
+      <el-table-column prop="check_type_label" label="类型" width="120">
+        <template #default="{ row }">{{ row.check_type_label || row.check_type || "-" }}</template>
+      </el-table-column>
+      <el-table-column prop="time_result_label" label="结果" width="120">
+        <template #default="{ row }">{{ row.time_result_label || row.time_result || "-" }}</template>
+      </el-table-column>
       <el-table-column prop="user_check_time" label="打卡时间" width="200" />
       <el-table-column prop="work_date" label="工作日期" width="160" />
       <el-table-column prop="source_type" label="来源" width="120" />
@@ -78,34 +85,19 @@ const syncRange = ref<string[]>([]);
 const pagination = reactive({ page: 1, size: 10, total: 0 });
 const filters = reactive<{ config_id: string; userid: string; range: string[] | [] }>({ config_id: "", userid: "", range: [] });
 
-const ensureConfigId = () => {
-  if (filters.config_id && configs.value.some(item => item.id === filters.config_id)) {
-    return filters.config_id;
-  }
-  if (currentConfigId.value && configs.value.some(item => item.id === currentConfigId.value)) {
-    filters.config_id = currentConfigId.value;
-    return filters.config_id;
-  }
-  if (configs.value.length) {
-    filters.config_id = configs.value[0].id;
-  }
-  return filters.config_id;
-};
-
 const loadConfigs = async () => {
-  if (configs.value.length) {
-    ensureConfigId();
-    return;
+  if (!configs.value.length) {
+    const { data } = await listConfigs();
+    store.setConfigs(data || []);
   }
-  const { data } = await listConfigs();
-  store.setConfigs(data || []);
-  ensureConfigId();
+  filters.config_id = store.ensureCurrentConfigId(filters.config_id);
 };
 
 const loadAttendance = async () => {
   loading.value = true;
   try {
-    const configId = ensureConfigId();
+    const configId = store.ensureCurrentConfigId(filters.config_id);
+    filters.config_id = configId;
     if (!configId) {
       records.value = [];
       pagination.total = 0;
@@ -134,7 +126,8 @@ const loadAttendance = async () => {
 const loadLogs = async (page = logsPagination.page) => {
   logsLoading.value = true;
   try {
-    const configId = ensureConfigId();
+    const configId = store.ensureCurrentConfigId(filters.config_id);
+    filters.config_id = configId;
     if (!configId) {
       logs.value = [];
       logsPagination.total = 0;
@@ -154,8 +147,7 @@ const handleReload = async () => {
 };
 
 const handleConfigChange = async (id: string) => {
-  filters.config_id = id;
-  store.setCurrentConfig(id);
+  filters.config_id = store.ensureCurrentConfigId(id);
   await handleReload();
 };
 
@@ -177,7 +169,8 @@ const openSyncDialog = () => {
 };
 
 const submitSync = async () => {
-  const configId = ensureConfigId();
+  const configId = store.ensureCurrentConfigId(filters.config_id);
+  filters.config_id = configId;
   if (!configId) {
     message.warning("请先选择配置");
     return;
@@ -221,7 +214,7 @@ watch(
   () => currentConfigId.value,
   async id => {
     if (id) {
-      filters.config_id = id;
+      filters.config_id = store.ensureCurrentConfigId(id);
       await handleReload();
     }
   }

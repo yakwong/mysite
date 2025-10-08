@@ -22,6 +22,7 @@ from .constants import SyncOperation
 from .filters import (
     DingTalkAttendanceFilter,
     DingTalkDepartmentFilter,
+    DingTalkDimissionUserFilter,
     DingTalkSyncLogFilter,
     DingTalkUserFilter,
 )
@@ -30,6 +31,7 @@ from .models import (
     DingTalkAttendanceRecord,
     DingTalkConfig,
     DingTalkDepartment,
+    DingTalkDimissionUser,
     DingTalkSyncLog,
     DingTalkUser,
     SyncCursor,
@@ -41,6 +43,7 @@ from .serializers import (
     DingTalkAttendanceSerializer,
     DingTalkConfigSerializer,
     DingTalkDepartmentSerializer,
+    DingTalkDimissionUserSerializer,
     DingTalkSyncInfoSerializer,
     DingTalkSyncLogSerializer,
     DingTalkUserSerializer,
@@ -80,6 +83,13 @@ class DingTalkConfigViewSet(CustomModelViewSet):
     queryset = DingTalkConfig.objects.all().order_by("id")
     serializer_class = DingTalkConfigSerializer
     permission_classes = [IsAuthenticated, CanManageDingTalk]
+
+    def get_permissions(self):
+        if self.action in {"list", "retrieve"}:
+            permission_classes = [IsAuthenticated, CanViewDingTalk]
+        else:
+            permission_classes = [IsAuthenticated, CanManageDingTalk]
+        return [permission_class() for permission_class in permission_classes]
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -127,6 +137,9 @@ class SyncCommandView(APIView):
             if operation == SyncOperation.SYNC_USERS:
                 data = service.sync_users(mode=mode)
                 return CustomResponse(success=True, data=data, msg="用户同步完成")
+            if operation == SyncOperation.SYNC_DIMISSION_USERS:
+                data = service.sync_dimission_users(mode=mode)
+                return CustomResponse(success=True, data=data, msg="离职人员同步完成")
             if operation == SyncOperation.SYNC_ATTENDANCE:
                 if not start or not end:
                     return CustomResponse(success=False, data=None, msg="请提供 start 与 end 时间", status=status.HTTP_400_BAD_REQUEST)
@@ -235,6 +248,14 @@ class DingTalkUserViewSet(CustomModelViewSet):
             limit_value = total
         data = users[:limit_value]
         return CustomResponse(success=True, data=data, msg="成功获取实时用户列表", page=1, limit=limit_value, total=total)
+
+
+class DingTalkDimissionUserViewSet(CustomModelViewSet):
+    queryset = DingTalkDimissionUser.objects.select_related("config").all().order_by("-leave_time", "-update_time")
+    serializer_class = DingTalkDimissionUserSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DingTalkDimissionUserFilter
+    permission_classes = [IsAuthenticated, CanViewDingTalk]
 
 
 class DingTalkAttendanceViewSet(CustomModelViewSet):

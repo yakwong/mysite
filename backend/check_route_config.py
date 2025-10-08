@@ -12,11 +12,12 @@
 import json
 import sqlite3
 import os
+import re
 from pathlib import Path
 
 # 项目路径
 PROJECT_ROOT = Path(__file__).parent.parent
-FRONTEND_ROUTE_FILE = PROJECT_ROOT / "frontend" / "src" / "router" / "modules" / "home.ts"
+FRONTEND_ROUTE_FILE = PROJECT_ROOT / "frontend" / "src" / "router" / "index.ts"
 BACKEND_DATA_FILE = PROJECT_ROOT / "backend" / "data.json"
 BACKEND_DB_FILE = PROJECT_ROOT / "backend" / "db.sqlite3"
 
@@ -32,16 +33,20 @@ def check_frontend_config():
 
     with open(FRONTEND_ROUTE_FILE, 'r', encoding='utf-8') as f:
         content = f.read()
-        for line in content.split('\n'):
-            if 'redirect:' in line and '//' not in line.split('redirect:')[0]:
-                print(f"  {line.strip()}")
-                if '"/welcome"' in line:
-                    print("  ✅ redirect = /welcome")
-                    return '/welcome'
-                elif '"/home"' in line:
-                    print("  ⚠️  redirect = /home")
-                    return '/home'
-                break
+        pattern = r"const\s+staticRootRoute[^=]*=\s*{.*?redirect:\s*\"([^\"]+)\""
+        match = re.search(pattern, content, re.S)
+        if not match:
+            print("  ❌ 未找到 staticRootRoute.redirect 配置")
+            return None
+        redirect = match.group(1)
+        print(f"  redirect: {redirect}")
+        if redirect == "/welcome":
+            print("  ✅ redirect = /welcome")
+        elif redirect == "/home":
+            print("  ⚠️  redirect = /home")
+        else:
+            print(f"  ⚠️ 尝试解析到 redirect = {redirect}")
+        return redirect
     return None
 
 

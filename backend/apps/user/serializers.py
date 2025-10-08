@@ -304,8 +304,12 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True)
 
     def validate_account(self, value):
-        """验证账号格式"""
+        """验证账号格式，统一去除首尾空白"""
         import re
+
+        normalized = value.strip()
+        if not normalized:
+            raise serializers.ValidationError("请输入有效的邮箱、用户名或手机号")
 
         # 中国手机号正则: 1开头，第二位是3-9，共11位
         phone_pattern = r'^1[3-9]\d{9}$'
@@ -313,15 +317,10 @@ class LoginSerializer(serializers.Serializer):
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
         # 判断是否为手机号
-        if re.match(phone_pattern, value):
-            return value
+        if re.match(phone_pattern, normalized):
+            return normalized
         # 判断是否为邮箱
-        elif re.match(email_pattern, value):
-            return value
+        if re.match(email_pattern, normalized):
+            return normalized
         # 判断是否为用户名 (允许字母、数字、下划线、中文)
-        elif len(value) > 0:
-            return value
-        else:
-            raise serializers.ValidationError("请输入有效的邮箱、用户名或手机号")
-
-        return value
+        return normalized

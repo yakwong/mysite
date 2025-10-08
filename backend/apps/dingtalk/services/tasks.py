@@ -27,6 +27,13 @@ def sync_users_task(config_id: str, *, mode: str = "full") -> dict:
     return result
 
 
+def sync_dimission_users_task(config_id: str, *, mode: str = "full") -> dict:
+    service = SyncService(DingTalkConfig.load(config_id))
+    result = service.sync_dimission_users(mode=mode)
+    logger.info("钉钉离职人员同步完成 config=%s result=%s", config_id, result)
+    return result
+
+
 def sync_attendance_task(config_id: str, *, start: datetime | None = None, end: datetime | None = None) -> dict:
     service = SyncService(DingTalkConfig.load(config_id))
     end = end or timezone.now()

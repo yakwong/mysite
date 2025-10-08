@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import django_filters
 
-from .models import DingTalkAttendanceRecord, DingTalkDepartment, DingTalkSyncLog, DingTalkUser
+from .models import (
+    DingTalkAttendanceRecord,
+    DingTalkDepartment,
+    DingTalkDimissionUser,
+    DingTalkSyncLog,
+    DingTalkUser,
+)
 
 
 class DingTalkSyncLogFilter(django_filters.FilterSet):
@@ -46,3 +52,14 @@ class DingTalkAttendanceFilter(django_filters.FilterSet):
     class Meta:
         model = DingTalkAttendanceRecord
         fields = ["config_id", "userid", "start", "end"]
+
+
+class DingTalkDimissionUserFilter(django_filters.FilterSet):
+    config_id = django_filters.CharFilter(field_name="config_id")
+    name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
+    mobile = django_filters.CharFilter(field_name="mobile", lookup_expr="icontains")
+    userid = django_filters.CharFilter(field_name="userid", lookup_expr="icontains")
+
+    class Meta:
+        model = DingTalkDimissionUser
+        fields = ["config_id", "name", "mobile", "userid"]

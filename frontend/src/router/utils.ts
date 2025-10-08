@@ -10,12 +10,93 @@ import { type menuType, routerArrays } from "@/layout/types";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 const IFrame = () => import("@/layout/frame.vue");
+const hideHomeMenu = import.meta.env.VITE_HIDE_HOME === "true";
 // https://cn.vitejs.dev/guide/features.html#glob-import
-const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
+const modulesRoutes: Record<string, () => Promise<unknown>> = import.meta.glob([
+  "/src/views/**/*.{vue,tsx}",
+  "/src/modules/**/*.{vue,tsx}"
+]);
 
 // 动态路由
 import { getAsyncRoutes } from "@/api/routes";
 import { handleTree } from "@/utils/tree";
+
+const fallbackAsyncModules: Array<RouteRecordRaw> = [
+  {
+    path: "/dingtalk",
+    meta: {
+      icon: "ri:dingding-line",
+      title: "钉钉中心",
+      rank: 3
+    },
+    children: [
+      {
+        path: "/dingtalk/dashboard",
+        name: "dingtalk-dashboard",
+        component: "modules/dingtalk/views/Dashboard",
+        meta: {
+          title: "总览",
+          keepAlive: false
+        }
+      },
+      {
+        path: "/dingtalk/logs",
+        name: "dingtalk-logs",
+        component: "modules/dingtalk/views/Logs",
+        meta: {
+          title: "同步日志",
+          keepAlive: false
+        }
+      },
+      {
+        path: "/dingtalk/departments",
+        name: "dingtalk-departments",
+        component: "modules/dingtalk/views/Departments",
+        meta: {
+          title: "部门数据",
+          keepAlive: false
+        }
+      },
+      {
+        path: "/dingtalk/users",
+        name: "dingtalk-users",
+        component: "modules/dingtalk/views/Users",
+        meta: {
+          title: "人员数据",
+          keepAlive: false
+        }
+      },
+      {
+        path: "/dingtalk/attendance",
+        name: "dingtalk-attendance",
+        component: "modules/dingtalk/views/Attendance",
+        meta: {
+          title: "考勤记录",
+          keepAlive: false
+        }
+      },
+      {
+        path: "/dingtalk/settings",
+        name: "dingtalk-settings",
+        component: "modules/dingtalk/views/Settings",
+        meta: {
+          title: "高级设置",
+          keepAlive: false
+        }
+      }
+    ]
+  }
+] as unknown as Array<RouteRecordRaw>;
+
+function mergeFallbackRoutes(routes: Array<RouteRecordRaw>) {
+  const merged = cloneDeep(routes);
+  fallbackAsyncModules.forEach(fallback => {
+    if (!merged.some(route => route.path === fallback.path)) {
+      merged.push(cloneDeep(fallback));
+    }
+  });
+  return merged;
+}
 
 function handRank(routeInfo: any) {
   const { name, path, parentId, meta } = routeInfo;
@@ -114,11 +195,29 @@ function addPathMatch() {
 
 /** 处理动态路由（后端返回的路由） */
 function handleAsyncRoutes(routeList) {
-  if (routeList.length === 0) {
-    usePermissionStoreHook().handleWholeMenus(routeList);
+  const filledRoutes = mergeFallbackRoutes(routeList ?? []);
+  const normalizeMeta = (routes: Array<RouteRecordRaw>) => {
+    routes.forEach(route => {
+      route.meta = {
+        ...(route.meta ?? {}),
+        backstage: true
+      };
+      if (route.path === "/") {
+        route.meta.showLink = false;
+        route.meta.showParent = false;
+        route.name = "Root";
+      }
+      if (route.children?.length) {
+        normalizeMeta(route.children as Array<RouteRecordRaw>);
+      }
+    });
+  };
+  normalizeMeta(filledRoutes);
+  if (filledRoutes.length === 0) {
+    usePermissionStoreHook().handleWholeMenus(filledRoutes);
   } else {
     let rootRouteConfig: RouteRecordRaw | null = null;
-    formatFlatteningRoutes(addAsyncRoutes(routeList)).map((v: RouteRecordRaw) => {
+    formatFlatteningRoutes(addAsyncRoutes(cloneDeep(filledRoutes))).map((v: RouteRecordRaw) => {
       if (v.path === "/") {
         rootRouteConfig = v;
         return;
@@ -159,7 +258,8 @@ function handleAsyncRoutes(routeList) {
         }
       }
     }
-    usePermissionStoreHook().handleWholeMenus(routeList);
+    const menuRoutes = filledRoutes.filter(route => route.path !== "/");
+    usePermissionStoreHook().handleWholeMenus(menuRoutes);
   }
   if (!useMultiTagsStoreHook().getMultiTagsCache) {
     useMultiTagsStoreHook().handleTags("equal", [...routerArrays, ...usePermissionStoreHook().flatteningRoutes.filter(v => v?.meta?.fixedTag)]);
@@ -288,6 +388,15 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
   arrRoutes.forEach((v: RouteRecordRaw) => {
     // 将backstage属性加入meta，标识此路由为后端返回路由
     v.meta.backstage = true;
+    if (v.path === "/") {
+      v.meta = {
+        ...(v.meta ?? {}),
+        showLink: false,
+        showParent: false,
+        backstage: true
+      };
+      v.name = "Root";
+    }
     // 父级的redirect属性取值：如果子级存在且父级的redirect属性不存在，默认取第一个子级的path；如果子级存在且父级的redirect属性存在，取存在的redirect属性，会覆盖默认值
     if (v?.children && v.children.length && !v.redirect) v.redirect = v.children[0].path;
     // 父级的name属性取值：如果子级存在且父级的name属性不存在，默认取第一个子级的name；如果子级存在且父级的name属性存在，取存在的name属性，会覆盖默认值（注意：测试中发现父级的name不能和子级name重复，如果重复会造成重定向无效（跳转404），所以这里给父级的name起名的时候后面会自动加上`Parent`，避免重复）
@@ -299,7 +408,8 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       // 若存在重定向则不为该路由匹配组件，避免子路由误调用父路由组件的bug
       if (!v.redirect) {
         const candidates: string[] = [];
-        if (typeof v.component === "string" && v.component.length) candidates.push(v.component as string);
+        const componentValue = v.component as unknown;
+        if (typeof componentValue === "string" && componentValue.length) candidates.push(componentValue);
         candidates.push(`${v.path}/index`);
         candidates.push(v.path);
         let matchKey: string | undefined;
@@ -311,7 +421,7 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
           if (matchKey) break;
         }
         if (matchKey) {
-          v.component = modulesRoutes[matchKey];
+          v.component = modulesRoutes[matchKey] as unknown as RouteRecordRaw["component"];
         } else {
           console.warn("[router] 未匹配到组件", v.path, v.component);
         }
@@ -376,8 +486,24 @@ function handleTopMenu(route) {
 
 /** 获取所有菜单中的第一个菜单（顶级菜单）*/
 function getTopMenu(tag = false): menuType {
-  const topMenu = handleTopMenu(usePermissionStoreHook().wholeMenus[0]?.children[0]);
-  tag && useMultiTagsStoreHook().handleTags("push", topMenu);
+  const permissionStore = usePermissionStoreHook();
+  const fallback: menuType = {
+    path: "/welcome",
+    name: "Welcome",
+    meta: { title: "首页", showLink: true }
+  } as menuType;
+
+  const firstDynamicGroup = permissionStore.wholeMenus?.[0];
+  const firstDynamicChild = firstDynamicGroup?.children?.[0];
+  const firstStaticChild = (permissionStore.constantMenus?.[0] as any)?.children?.[0];
+
+  const candidate = firstDynamicChild || firstDynamicGroup || firstStaticChild;
+  const topMenu = handleTopMenu(candidate) || fallback;
+
+  if (tag) {
+    useMultiTagsStoreHook().handleTags("push", topMenu);
+  }
+
   return topMenu;
 }
 

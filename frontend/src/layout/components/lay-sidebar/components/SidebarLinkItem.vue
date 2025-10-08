@@ -18,7 +18,7 @@ const getLinkProps = (item: menuType) => {
     };
   }
   return {
-    to: item
+    to: item.path || "/"
   };
 };
 </script>

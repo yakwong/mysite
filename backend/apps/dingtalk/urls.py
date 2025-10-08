@@ -7,6 +7,7 @@ from .views import (
     DingTalkCallbackView,
     DingTalkConfigViewSet,
     DingTalkDepartmentViewSet,
+    DingTalkDimissionUserViewSet,
     DingTalkSyncLogViewSet,
     DingTalkUserViewSet,
     SyncCommandView,
@@ -19,6 +20,7 @@ router.register("configs", DingTalkConfigViewSet, basename="dingtalk-configs")
 router.register("logs", DingTalkSyncLogViewSet, basename="dingtalk-logs")
 router.register("departments", DingTalkDepartmentViewSet, basename="dingtalk-departments")
 router.register("users", DingTalkUserViewSet, basename="dingtalk-users")
+router.register("dimission-users", DingTalkDimissionUserViewSet, basename="dingtalk-dimission-users")
 router.register("attendances", DingTalkAttendanceViewSet, basename="dingtalk-attendances")
 router.register("cursors", SyncCursorViewSet, basename="dingtalk-cursors")
 router.register("dept-bindings", DeptBindingViewSet, basename="dingtalk-dept-bindings")

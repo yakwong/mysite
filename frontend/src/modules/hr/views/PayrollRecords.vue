@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { computed, reactive } from "vue";
+import { computed, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useHrStoreHook } from "@/store/modules/hr";
 
@@ -122,7 +122,9 @@ const statusType = (status: number) => {
   return "info";
 };
 
-await handleFetch();
+onMounted(() => {
+  void handleFetch();
+});
 </script>
 
 <style scoped lang="scss">

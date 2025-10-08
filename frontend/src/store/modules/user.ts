@@ -3,6 +3,7 @@ import { type userType, store, router, resetRouter, routerArrays, storageLocal }
 import { type UserResult, type RefreshTokenResult, getLogin, refreshTokenApi } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import { usePermissionStoreHook } from "@/store/modules/permission";
 import { message } from "@/utils/message";
 
 export const useUserStore = defineStore("pure-user", {
@@ -79,6 +80,7 @@ export const useUserStore = defineStore("pure-user", {
       this.roles = [];
       this.permissions = [];
       removeToken();
+      usePermissionStoreHook().handleWholeMenus([]);
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
       router.push("/login");

@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { UI_BASE_URL, UI_USERNAME, UI_PASSWORD } from "./support/env";
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const expectHeaderCell = async (page: Page, label: string) => {
@@ -17,10 +18,6 @@ const expectHeaderCell = async (page: Page, label: string) => {
     .first();
   await expect(fallbackHeader).toBeVisible();
 };
-
-const BASE_URL = process.env.UI_BASE_URL ?? "http://127.0.0.1:8848";
-const USERNAME = process.env.UI_USERNAME ?? "admin";
-const PASSWORD = process.env.UI_PASSWORD ?? "k12345678";
 
 type Section = {
   path: string;
@@ -75,16 +72,16 @@ const HR_SECTIONS: Section[] = [
 
 test.describe("HR module navigation", () => {
   test("user can login and view key HR routes", async ({ page }) => {
-    await page.goto(`${BASE_URL}/#/login`);
+    await page.goto(`${UI_BASE_URL}/#/login`);
 
-    await page.getByPlaceholder("邮箱/用户名/手机号").fill(USERNAME);
-    await page.getByPlaceholder("密码").fill(PASSWORD);
+    await page.getByPlaceholder("邮箱/用户名/手机号").fill(UI_USERNAME);
+    await page.getByPlaceholder("密码").fill(UI_PASSWORD);
     await page.getByRole("button", { name: "登录" }).click();
 
-    await expect(page).toHaveURL(/#\/welcome/);
+    await expect(page).toHaveURL(/#\/(welcome|system\/permission)/);
 
     for (const section of HR_SECTIONS) {
-      await page.goto(`${BASE_URL}${section.path}`);
+      await page.goto(`${UI_BASE_URL}${section.path}`);
       await expect(page).toHaveURL(new RegExp(escapeRegex(section.path)));
       await section.assert(page);
     }

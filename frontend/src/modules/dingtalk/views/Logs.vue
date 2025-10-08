@@ -8,6 +8,7 @@
         <el-option label="测试连接" value="test_connection" />
         <el-option label="同步部门" value="sync_departments" />
         <el-option label="同步用户" value="sync_users" />
+        <el-option label="同步离职人员" value="sync_dimission_users" />
         <el-option label="同步考勤" value="sync_attendance" />
         <el-option label="全量同步" value="full_sync" />
       </el-select>
@@ -51,14 +52,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
 import { listConfigs, listLogs, type DingTalkLog } from "../api";
 import { useDingtalkStore } from "../store/useDingtalkStore";
 
 const store = useDingtalkStore();
-const { configs } = store;
+const { configs, currentConfigId } = storeToRefs(store);
 
 const loading = ref(false);
 const logs = ref<DingTalkLog[]>([]);
@@ -70,14 +72,19 @@ const detailContent = ref("{}");
 const formatDate = (value?: string | null) => (value ? dayjs(value).format("YYYY-MM-DD HH:mm:ss") : "-");
 
 const loadConfigs = async () => {
-  if (configs.length) return;
-  const { data } = await listConfigs();
-  store.setConfigs(data || []);
+  if (!configs.value.length) {
+    const { data } = await listConfigs();
+    store.setConfigs(data || []);
+  }
+  filters.config_id = store.ensureCurrentConfigId(filters.config_id);
 };
 
 const loadLogs = async () => {
   loading.value = true;
   try {
+    if (configs.value.length) {
+      filters.config_id = store.ensureCurrentConfigId(filters.config_id);
+    }
     const params = {
       page: pagination.page,
       size: pagination.size,
@@ -99,6 +106,11 @@ const handlePageChange = async (page: number) => {
 };
 
 const handleFilterChange = async () => {
+  if (filters.config_id) {
+    filters.config_id = store.ensureCurrentConfigId(filters.config_id);
+  } else {
+    store.ensureCurrentConfigId();
+  }
   pagination.page = 1;
   await loadLogs();
 };
@@ -116,6 +128,17 @@ onMounted(async () => {
   await loadConfigs();
   await loadLogs();
 });
+
+watch(
+  () => currentConfigId.value,
+  async id => {
+    const resolved = store.ensureCurrentConfigId(id);
+    if (resolved) {
+      filters.config_id = resolved;
+    }
+    await loadLogs();
+  }
+);
 </script>
 
 <style scoped>

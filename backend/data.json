@@ -1162,24 +1162,6 @@
   },
   {
     "model": "system.menu",
-    "pk": "f5c282a6-9ac4-4b8a-965a-d1d98a7178ab",
-    "fields": {
-      "create_time": "2024-10-15T05:15:12.609Z",
-      "update_time": "2024-10-15T05:19:55.124Z",
-      "parent": "b7965934-3627-4c1d-a919-d52bb61212a9",
-      "menu_type": 1,
-      "name": "首页",
-      "code": null,
-      "path": "/home",
-      "component": "/home/index",
-      "status": true,
-      "meta": "3c200710-72a5-4b25-bf7e-5da6398868e6",
-      "method": null,
-      "redirect": null
-    }
-  },
-  {
-    "model": "system.menu",
     "pk": "fbf4bfce-5f53-44fc-8604-1a3f3bcf3b56",
     "fields": {
       "create_time": "2024-10-25T02:42:04.477Z",
@@ -1292,28 +1274,6 @@
       "r_svg_name": null,
       "is_show_menu": true,
       "is_show_parent": true,
-      "is_keepalive": false,
-      "frame_url": null,
-      "frame_loading": false,
-      "transition_enter": null,
-      "transition_leave": null,
-      "is_hidden_tag": false,
-      "fixed_tag": false,
-      "dynamic_level": 0
-    }
-  },
-  {
-    "model": "system.menumeta",
-    "pk": "3c200710-72a5-4b25-bf7e-5da6398868e6",
-    "fields": {
-      "create_time": "2024-10-15T05:15:12.594Z",
-      "update_time": "2024-10-15T05:19:55.109Z",
-      "title": "首页",
-      "icon": "ep:house",
-      "rank": 1,
-      "r_svg_name": null,
-      "is_show_menu": true,
-      "is_show_parent": false,
       "is_keepalive": false,
       "frame_url": null,
       "frame_loading": false,

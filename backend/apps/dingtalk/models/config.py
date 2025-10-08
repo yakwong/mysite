@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
 from utils.models import BaseModel
+from ..constants import DEFAULT_DIMISSION_ROSTER_FIELDS
 
 
 class DingTalkConfig(BaseModel):
@@ -35,9 +37,11 @@ class DingTalkConfig(BaseModel):
     last_user_sync_time = models.DateTimeField(null=True, blank=True, verbose_name="用户最近同步时间")
     last_dept_sync_time = models.DateTimeField(null=True, blank=True, verbose_name="部门最近同步时间")
     last_attendance_sync_time = models.DateTimeField(null=True, blank=True, verbose_name="考勤最近同步时间")
+    last_dimission_sync_time = models.DateTimeField(null=True, blank=True, verbose_name="离职人员最近同步时间")
     last_user_sync_count = models.IntegerField(default=0, verbose_name="最近同步用户数量")
     last_dept_sync_count = models.IntegerField(default=0, verbose_name="最近同步部门数量")
     last_attendance_sync_count = models.IntegerField(default=0, verbose_name="最近同步考勤数量")
+    last_dimission_sync_count = models.IntegerField(default=0, verbose_name="最近同步离职人员数量")
 
     schedule = models.JSONField(default=dict, blank=True, verbose_name="计划任务配置")
 
@@ -76,6 +80,7 @@ class DingTalkConfig(BaseModel):
         user_sync_time: timezone.datetime | None = None,
         dept_sync_time: timezone.datetime | None = None,
         attendance_sync_time: timezone.datetime | None = None,
+        dimission_sync_time: timezone.datetime | None = None,
     ) -> None:
         stats = stats or {}
         self.last_sync_status = status
@@ -87,12 +92,16 @@ class DingTalkConfig(BaseModel):
             self.last_dept_sync_count = stats["dept_count"]
         if "attendance_count" in stats:
             self.last_attendance_sync_count = stats["attendance_count"]
+        if "dimission_count" in stats:
+            self.last_dimission_sync_count = stats["dimission_count"]
         if user_sync_time:
             self.last_user_sync_time = user_sync_time
         if dept_sync_time:
             self.last_dept_sync_time = dept_sync_time
         if attendance_sync_time:
             self.last_attendance_sync_time = attendance_sync_time
+        if dimission_sync_time:
+            self.last_dimission_sync_time = dimission_sync_time
         update_fields = {
             "last_sync_status",
             "last_sync_message",
@@ -100,6 +109,7 @@ class DingTalkConfig(BaseModel):
             "last_user_sync_count",
             "last_dept_sync_count",
             "last_attendance_sync_count",
+            "last_dimission_sync_count",
             "update_time",
         }
         if self.last_user_sync_time:
@@ -108,4 +118,35 @@ class DingTalkConfig(BaseModel):
             update_fields.add("last_dept_sync_time")
         if self.last_attendance_sync_time:
             update_fields.add("last_attendance_sync_time")
+        if self.last_dimission_sync_time:
+            update_fields.add("last_dimission_sync_time")
         self.save(update_fields=list(update_fields))
+
+    def get_dimission_roster_fields(self) -> list[str]:
+        def _normalize(value: object) -> list[str]:
+            if value in (None, "", [], {}):
+                return []
+            if isinstance(value, str):
+                items = [item.strip() for item in value.split(",")]
+            elif isinstance(value, (list, tuple, set)):
+                items = []
+                for item in value:
+                    if item in (None, ""):
+                        continue
+                    if isinstance(item, str):
+                        items.append(item.strip())
+                    else:
+                        items.append(str(item).strip())
+            else:
+                return []
+            return [item for item in items if item]
+
+        schedule_fields = _normalize((self.schedule or {}).get("dimission_roster_fields"))
+        if schedule_fields:
+            return schedule_fields
+
+        settings_fields = _normalize(getattr(settings, "DINGTALK", {}).get("DIMISSION_ROSTER_FIELDS"))
+        if settings_fields:
+            return settings_fields
+
+        return list(DEFAULT_DIMISSION_ROSTER_FIELDS)

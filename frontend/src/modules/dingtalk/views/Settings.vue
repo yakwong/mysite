@@ -64,7 +64,8 @@ const loadConfigs = async () => {
     store.setConfigs(data || []);
     const list = configs.value;
     if (list.length) {
-      mapConfig(list[0]);
+      const resolved = store.ensureCurrentConfigId(list[0]?.id);
+      mapConfig(store.getConfigById(resolved) ?? list[0]);
     }
   } finally {
     loading.value = false;
@@ -85,7 +86,8 @@ const mapConfig = (cfg: DingTalkConfigForm) => {
 };
 
 const handleConfigChange = (id: string) => {
-  const target = configs.value.find(item => item.id === id);
+  const resolved = store.ensureCurrentConfigId(id);
+  const target = store.getConfigById(resolved);
   if (target) {
     mapConfig(target);
   }
@@ -106,8 +108,8 @@ const handleSave = async () => {
       remark: form.remark
     };
     const { data } = await updateConfig(form.id, payload);
-    const updatedConfigs = configs.value.map(item => (item.id === data.id ? data : item));
-    store.setConfigs(updatedConfigs);
+    store.upsertConfig(data);
+    mapConfig(data);
     message.success("设置已保存");
   } catch (error: any) {
     message.error(error?.msg || "保存失败");

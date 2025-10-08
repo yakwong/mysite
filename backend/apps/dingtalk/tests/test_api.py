@@ -7,7 +7,13 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from apps.dingtalk.models import DingTalkAttendanceRecord, DingTalkConfig, DingTalkSyncLog
+from apps.dingtalk.models import (
+    DingTalkAttendanceRecord,
+    DingTalkConfig,
+    DingTalkDepartment,
+    DingTalkSyncLog,
+    DingTalkUser,
+)
 
 
 class DingTalkAPITestCase(APITestCase):
@@ -24,6 +30,24 @@ class DingTalkAPITestCase(APITestCase):
         self.client.force_authenticate(self.user)
 
     def test_get_config_list_contains_default(self):
+        url = reverse("dingtalk-configs-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertTrue(payload["success"])  # type: ignore[index]
+        self.assertGreaterEqual(len(payload["data"]), 1)  # type: ignore[index]
+        self.assertEqual(payload["data"][0]["id"], "default")  # type: ignore[index]
+
+    def test_non_staff_user_can_view_config_list(self):
+        readonly_user = get_user_model().objects.create_user(
+            email="viewer@example.com",
+            username="viewer",
+            password="StrongPass!123",
+        )
+        readonly_user.is_staff = False
+        readonly_user.save(update_fields=["is_staff"])
+        self.client.force_authenticate(readonly_user)
+
         url = reverse("dingtalk-configs-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -202,6 +226,67 @@ class DingTalkAPITestCase(APITestCase):
             )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(DingTalkAttendanceRecord.objects.count(), 0)
+
+    def test_user_list_returns_department_names(self):
+        config = DingTalkConfig.load()
+        config.enabled = True
+        config.save()
+        DingTalkDepartment.objects.create(
+            dept_id=101,
+            config=config,
+            name="研发部",
+        )
+        DingTalkUser.objects.create(
+            userid="user-a",
+            config=config,
+            name="Alice",
+            dept_ids=[101],
+        )
+        url = reverse("dingtalk-users-list")
+        response = self.client.get(f"{url}?config_id={config.id}&page=1&size=20")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertTrue(payload["success"])  # type: ignore[index]
+        self.assertGreaterEqual(len(payload["data"]), 1)  # type: ignore[index]
+        record = payload["data"][0]
+        self.assertIn("dept_names", record)  # type: ignore[arg-type]
+        self.assertEqual(record["dept_names"], ["研发部"])  # type: ignore[index]
+
+    def test_attendance_list_contains_labels(self):
+        config = DingTalkConfig.load()
+        config.enabled = True
+        config.save()
+        DingTalkDepartment.objects.create(
+            dept_id=202,
+            config=config,
+            name="综合部",
+        )
+        DingTalkUser.objects.create(
+            userid="user-b",
+            config=config,
+            name="Bob",
+            dept_ids=[202],
+        )
+        DingTalkAttendanceRecord.objects.create(
+            record_id="rec-1",
+            config=config,
+            userid="user-b",
+            check_type="OnDuty",
+            time_result="Late",
+            user_check_time=timezone.now(),
+            work_date=timezone.now().date(),
+            source_type="test",
+        )
+        url = reverse("dingtalk-attendances-list")
+        response = self.client.get(f"{url}?config_id={config.id}&page=1&size=20")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertTrue(payload["success"])  # type: ignore[index]
+        self.assertGreaterEqual(len(payload["data"]), 1)  # type: ignore[index]
+        record = payload["data"][0]
+        self.assertEqual(record.get("user_name"), "Bob")
+        self.assertEqual(record.get("check_type_label"), "上班打卡")
+        self.assertEqual(record.get("time_result_label"), "迟到")
 
     @patch("apps.dingtalk.services.client.DingTalkClient.list_attendance_records")
     @patch("apps.dingtalk.services.client.DingTalkClient.get_access_token")

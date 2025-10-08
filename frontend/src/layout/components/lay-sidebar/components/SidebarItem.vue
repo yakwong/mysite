@@ -84,7 +84,15 @@ function hasOneShowingChild(children: menuType[] = [], parent: menuType) {
   }
 
   if (showingChildren.length === 0) {
-    onlyOneChild.value = { ...parent, path: "", noShowingChildren: true };
+    const fallbackPath = parent.redirect || parent.path || "";
+    const rest = { ...(parent as any) };
+    delete rest.name;
+    onlyOneChild.value = { ...rest, path: fallbackPath || "/", noShowingChildren: true };
+    if (fallbackPath && fallbackPath !== parent.path) {
+      onlyOneChild.value.name = (parent.children?.[0]?.name as any) || "Welcome";
+    } else if (parent.name) {
+      onlyOneChild.value.name = parent.name;
+    }
     return true;
   }
   return false;

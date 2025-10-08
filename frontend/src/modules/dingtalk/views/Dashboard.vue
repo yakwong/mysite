@@ -70,10 +70,12 @@
           <el-descriptions-item label="同步用户数">{{ syncInfo.userCount }}</el-descriptions-item>
           <el-descriptions-item label="同步部门数">{{ syncInfo.deptCount }}</el-descriptions-item>
           <el-descriptions-item label="考勤记录数">{{ syncInfo.attendanceCount }}</el-descriptions-item>
+          <el-descriptions-item label="离职人员数">{{ syncInfo.dimissionCount }}</el-descriptions-item>
           <el-descriptions-item label="Token过期时间">{{ formatDate(syncInfo.accessTokenExpiresAt) }}</el-descriptions-item>
           <el-descriptions-item label="最近用户同步">{{ formatDate(syncInfo.lastUserSyncTime) }}</el-descriptions-item>
           <el-descriptions-item label="最近部门同步">{{ formatDate(syncInfo.lastDeptSyncTime) }}</el-descriptions-item>
           <el-descriptions-item label="最近考勤同步">{{ formatDate(syncInfo.lastAttendanceSyncTime) }}</el-descriptions-item>
+          <el-descriptions-item label="最近离职同步">{{ formatDate(syncInfo.lastDimissionSyncTime) }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
     </section>
@@ -177,9 +179,11 @@ const syncInfo = reactive({
   lastDeptSyncTime: "",
   lastUserSyncTime: "",
   lastAttendanceSyncTime: "",
+  lastDimissionSyncTime: "",
   deptCount: 0,
   userCount: 0,
   attendanceCount: 0,
+  dimissionCount: 0,
   accessTokenExpiresAt: ""
 });
 
@@ -223,20 +227,20 @@ const formatUserOptionLabel = (user: any): string => {
 const formatDate = (value?: string | null) => (value ? dayjs(value).format("YYYY-MM-DD HH:mm:ss") : "-");
 
 const handleConfigChange = async (id: string) => {
-  store.setCurrentConfig(id);
-  const target = configs.value.find(item => item.id === id);
-  if (target) {
-    mapConfigToForm(target);
-    await loadSyncInfo();
-    testSelectedUserIds.value = [];
-    testUserOptions.value = [];
-    if (testDialogVisible.value) {
-      await fetchTestUserOptions();
-    }
+  const resolvedId = store.ensureCurrentConfigId(id);
+  const target = store.getConfigById(resolvedId);
+  if (!target) return;
+  mapConfigToForm(target);
+  await loadSyncInfo();
+  testSelectedUserIds.value = [];
+  testUserOptions.value = [];
+  if (testDialogVisible.value) {
+    await fetchTestUserOptions();
   }
 };
 
 const mapConfigToForm = (cfg: DingTalkConfigForm) => {
+  store.ensureCurrentConfigId(cfg.id);
   Object.assign(configForm, cfg);
 };
 
@@ -244,16 +248,17 @@ const loadConfigs = async () => {
   loading.value = true;
   try {
     const { data } = await listConfigs();
-    store.setConfigs(data || []);
-    const configList = configs.value;
-    if (configList.length) {
-      const current = configList.find(item => item.id === currentConfigId.value) || configList[0];
-      mapConfigToForm(current);
-      await loadSyncInfo();
-    } else {
+    if (data?.length) {
+      store.setConfigs(data);
+    } else if (!configs.value.length) {
       const created = await createDefaultConfig();
       store.setConfigs([created]);
-      mapConfigToForm(created);
+    }
+    const resolvedId = store.ensureCurrentConfigId();
+    const active = store.getConfigById(resolvedId);
+    if (active) {
+      mapConfigToForm(active);
+      await loadSyncInfo();
     }
   } finally {
     loading.value = false;
@@ -267,7 +272,25 @@ const createDefaultConfig = async (): Promise<DingTalkConfigForm> => {
 };
 
 const loadSyncInfo = async () => {
-  const { data } = await getSyncInfo(currentConfigId.value);
+  const configId = store.ensureCurrentConfigId(configForm.id);
+  if (!configId) {
+    Object.assign(syncInfo, {
+      status: "",
+      message: "",
+      lastSyncTime: "",
+      lastDeptSyncTime: "",
+      lastUserSyncTime: "",
+      lastAttendanceSyncTime: "",
+      deptCount: 0,
+      userCount: 0,
+      attendanceCount: 0,
+      accessTokenExpiresAt: "",
+      lastDimissionSyncTime: "",
+      dimissionCount: 0
+    });
+    return;
+  }
+  const { data } = await getSyncInfo(configId);
   Object.assign(syncInfo, data);
 };
 
@@ -275,8 +298,9 @@ const handleSave = async () => {
   saving.value = true;
   try {
     const { data } = await updateConfig(configForm.id, configForm);
-    const updatedConfigs = configs.value.map(item => (item.id === data.id ? data : item));
-    store.setConfigs(updatedConfigs);
+    store.upsertConfig(data);
+    mapConfigToForm(data);
+    await loadSyncInfo();
     message.success("配置已保存");
   } finally {
     saving.value = false;
@@ -298,7 +322,7 @@ const handleTestConnection = async () => {
 };
 
 const fetchTestUserOptions = async (keyword?: string) => {
-  const configId = configForm.id || currentConfigId.value;
+  const configId = store.ensureCurrentConfigId(configForm.id);
   if (!configId) {
     message.warning("请先选择配置");
     testUserOptions.value = [];
@@ -339,7 +363,7 @@ const submitPreviewAttendance = async () => {
     message.warning("请选择至少一位用户");
     return;
   }
-  const configId = configForm.id || currentConfigId.value;
+  const configId = store.ensureCurrentConfigId(configForm.id);
   if (!configId) {
     message.warning("请先选择配置");
     return;
@@ -369,7 +393,8 @@ const submitPreviewAttendance = async () => {
 
 const handlePreviewDepartments = async () => {
   try {
-    const { data } = await listRemoteDepartments({ config_id: configForm.id, limit: 50 });
+    const configId = store.ensureCurrentConfigId(configForm.id);
+    const { data } = await listRemoteDepartments({ config_id: configId, limit: 50 });
     previewType.value = "department";
     previewData.value = data || [];
     previewTitle.value = "远程部门预览";
@@ -381,7 +406,8 @@ const handlePreviewDepartments = async () => {
 
 const handlePreviewUsers = async () => {
   try {
-    const { data } = await listRemoteUsers({ config_id: configForm.id, limit: 50 });
+    const configId = store.ensureCurrentConfigId(configForm.id);
+    const { data } = await listRemoteUsers({ config_id: configId, limit: 50 });
     previewType.value = "user";
     previewData.value = data || [];
     previewTitle.value = "远程用户预览";
@@ -398,7 +424,7 @@ onMounted(async () => {
 watch(
   () => currentConfigId.value,
   async id => {
-    if (id !== configForm.id) {
+    if (id && id !== configForm.id) {
       await handleConfigChange(id);
     }
   }

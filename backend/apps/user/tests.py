@@ -7,6 +7,32 @@ User = get_user_model()
 
 
 @override_settings(DEBUG=True, API_LOG_ENABLE=False)
+class LoginAPITests(TestCase):
+    """登录接口相关测试"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="loginuser@example.com",
+            username="loginuser",
+            password="LoginUser123!",
+        )
+
+    def test_login_allows_account_with_whitespace(self):
+        response = self.client.post(
+            "/api/user/login/",
+            {"account": "  loginuser@example.com  ", "password": "LoginUser123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, msg=response.content.decode())
+        payload = response.json()
+        self.assertTrue(payload.get("success"))
+        data = payload.get("data", {})
+        self.assertEqual(data.get("username"), "loginuser")
+        self.assertIn("accessToken", data)
+
+
+@override_settings(DEBUG=True, API_LOG_ENABLE=False)
 class AccountSecurityAPITests(TestCase):
     """账户设置安全相关接口测试"""
 
