@@ -242,7 +242,7 @@ class SyncService:
             for item in details:
                 if not isinstance(item, dict):
                     continue
-                userid = str(item.get("userid") or "")
+                userid = str(item.get("userid") or item.get("userId") or "")
                 if userid:
                     detail_map[userid] = item
             roster_fields = self.config.get_dimission_roster_fields()

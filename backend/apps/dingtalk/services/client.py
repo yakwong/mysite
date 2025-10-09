@@ -508,16 +508,17 @@ class DingTalkClient:
         if end_time is None:
             end_time = now
         if start_time is None:
-            start_time = end_time - timedelta(days=365)
+            start_time = end_time - timedelta(days=180)
 
-        def _format(value: timezone.datetime) -> str:
+        def _format(value: timezone.datetime) -> tuple[str, str]:
             aware = value
             if timezone.is_naive(aware):
                 aware = timezone.make_aware(aware, timezone.get_current_timezone())
-            return aware.astimezone(tz).strftime("%Y-%m-%d %H:%M:%S")
+            utc_value = aware.astimezone(tz)
+            return utc_value.strftime("%Y-%m-%d"), utc_value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        formatted_start = _format(start_time)
-        formatted_end = _format(end_time)
+        start_date, start_iso = _format(start_time)
+        end_date, end_iso = _format(end_time)
 
         def _normalize_page_size(value: int) -> int:
             try:
@@ -534,12 +535,24 @@ class DingTalkClient:
             target = "invalidmaxresults"
             return code.lower() == target or target in message.lower()
 
+        def _is_no_permission_error(error: DingTalkAPIError) -> bool:
+            message = str(error).lower()
+            payload = getattr(error, "payload", {}) or {}
+            code = str(payload.get("code") or payload.get("Code") or "").lower()
+            return any(keyword in message for keyword in ("no permission", "no-permission", "access denied", "permission denied")) or code in {"no_permission", "accessdenied", "nopermission"}
+
+        def _is_rate_limit_error(error: DingTalkAPIError) -> bool:
+            message = str(error).lower()
+            payload = getattr(error, "payload", {}) or {}
+            code = str(payload.get("code") or payload.get("Code") or "").lower()
+            return "rate" in message or "limit" in message or code in {"ratelimit", "limitexceeded", "limit_exceeded"}
+
         def _fetch(page_size: int) -> list[Dict[str, Any]]:
             params = {
-                "fromDate": formatted_start,
-                "toDate": formatted_end,
-                "startTime": formatted_start,
-                "endTime": formatted_end,
+                "fromDate": start_date,
+                "toDate": end_date,
+                "startTime": start_iso,
+                "endTime": end_iso,
                 "maxResults": _normalize_page_size(page_size),
             }
             next_token: Optional[str] = None
@@ -549,7 +562,19 @@ class DingTalkClient:
                 if next_token:
                     query["nextToken"] = next_token
                 _respect_rate_limit("dimission-records", self.config.id, limit=10, interval=1.0)
-                payload = self._request_open_api("GET", "/v1.0/contact/empLeaveRecords", params=query)
+                try:
+                    payload = self._request_open_api("GET", "/v1.0/contact/empLeaveRecords", params=query)
+                except DingTalkAPIError as exc:
+                    payload = getattr(exc, "payload", None)
+                    if _is_no_permission_error(exc):
+                        raise DingTalkAPIError(
+                            "钉钉接口缺少 empLeaveRecords 权限，请在开放平台勾选通讯录离职记录查询能力", payload=payload
+                        ) from exc
+                    if _is_rate_limit_error(exc):
+                        raise DingTalkAPIError(
+                            "钉钉 empLeaveRecords 接口触发限流，请等待后重试或降低同步频率", payload=payload
+                        ) from exc
+                    raise
                 items = payload.get("records") or payload.get("data") or []
                 if isinstance(items, dict):
                     items = items.get("records") or []

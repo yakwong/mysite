@@ -1,6 +1,8 @@
+from datetime import datetime, timezone as dt_timezone
 from unittest.mock import patch
 
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
 from apps.dingtalk.constants import DEFAULT_DIMISSION_ROSTER_FIELDS
 from apps.dingtalk.models import DingTalkConfig, DingTalkDimissionUser
@@ -64,6 +66,52 @@ class SyncDimissionUsersTests(TestCase):
         mock_userids.assert_called_once()
         mock_infos.assert_called_once()
         mock_roster.assert_called_once_with(["user-1"], field_codes=custom_fields)
+        mock_records.assert_called_once()
+
+    @patch("apps.dingtalk.services.sync.DingTalkClient.list_dimission_records")
+    @patch("apps.dingtalk.services.sync.DingTalkClient.list_roster_infos")
+    @patch("apps.dingtalk.services.sync.DingTalkClient.list_dimission_infos")
+    @patch("apps.dingtalk.services.sync.DingTalkClient.list_dimission_userids")
+    def test_sync_dimission_users_persists_leave_details(
+        self,
+        mock_userids,
+        mock_infos,
+        mock_roster,
+        mock_records,
+    ):
+        mock_userids.return_value = ["user-2"]
+        mock_infos.return_value = [
+            {
+                "userid": "user-2",
+                "name": "李同步",
+                "lastWorkDay": "2025-09-30",
+                "leaveReason": "",
+                "voluntaryReasons": ["个人发展"],
+            }
+        ]
+        mock_roster.return_value = {}
+        mock_records.return_value = [
+            {
+                "userId": "user-2",
+                "leaveTime": "2025-10-01 09:30:00",
+                "leaveReason": "组织调整",
+                "lastWorkDate": "2025-09-30",
+            }
+        ]
+
+        service = SyncService(self.config)
+        service.sync_dimission_users()
+
+        dimission = DingTalkDimissionUser.objects.get(userid="user-2")
+        self.assertEqual(dimission.leave_reason, "组织调整")
+        self.assertEqual(dimission.last_work_day.isoformat(), "2025-09-30")
+        self.assertIsNotNone(dimission.leave_time)
+        expected_leave_time = timezone.make_aware(datetime(2025, 10, 1, 9, 30, 0))
+        self.assertEqual(dimission.leave_time.astimezone(dt_timezone.utc), expected_leave_time.astimezone(dt_timezone.utc))
+
+        mock_userids.assert_called_once()
+        mock_infos.assert_called_once()
+        self.assertTrue(mock_roster.called)
         mock_records.assert_called_once()
 
     def test_get_dimission_roster_fields_default(self):
